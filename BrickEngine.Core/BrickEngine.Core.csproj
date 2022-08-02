@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;LEOECSLITE_WORLD_EVENTS;VALIDATION</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;LEOECSLITE_WORLD_EVENTS;VALIDATION</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
+    <PackageReference Include="NativeFileDialogSharp" Version="0.5.0" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ecslite\ecslite\EcsLite.csproj" />
+    <ProjectReference Include="..\..\veldrid\src\Veldrid.RenderDoc\Veldrid.RenderDoc.csproj" />
+    <ProjectReference Include="..\..\veldrid\src\Veldrid.SDL2\Veldrid.SDL2.csproj" />
+    <ProjectReference Include="..\..\veldrid\src\Veldrid.StartupUtilities\Veldrid.StartupUtilities.csproj" />
+    <ProjectReference Include="..\..\veldrid\src\Veldrid.Utilities\Veldrid.Utilities.csproj" />
+    <ProjectReference Include="..\..\veldrid\src\Veldrid\Veldrid.csproj" />
+    <ProjectReference Include="..\BrickEngine.Assets\BrickEngine.Assets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ImGui.NET">
+      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImGui.NET\netstandard2.0\ImGui.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="ImGuizmo.NET">
+      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImGuizmo.NET\netstandard2.0\ImGuizmo.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="ImPlot.NET">
+      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImPlot.NET\netstandard2.0\ImPlot.NET.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Roboto-Bold.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Roboto-Medium.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Roboto-Regular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

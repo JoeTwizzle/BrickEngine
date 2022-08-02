@@ -1,0 +1,70 @@
+﻿-----------Asset system------------
+Importers:
+Read external data and transform it into proprietary data (Assets)
+
+Loaders:
+Save and Load proprietary data (Assets), transform Assets into runtime data
+
+Assets:
+guid, properties, proprietary data
+
+AssetManager:
+string rootFolderOrFile (all assets are specified relative to this folder / zip file)
+bool IsRootZip;
+
+HashSet<Asset> allLoadedAssets;
+Dict<string, Asset> loadedAssets;
+Dict<Asset, string> reverseLoadedAssets; //just for performance when removing
+Dict<string, AssetProperties> allAssets; //built during startup and on file change and cached in Assets.store for future, only check for diffs
+
+bool TryLoadAsset(string relativePath, out Asset? asset);
+
+bool TryGetAssetProperties(string relativePath, out AssetProperties properties); returns properties from disk or from memory
+bool TryGetAsset(string relativePath, out Asset? asset);
+bool TryGetAsset(Guid guid, out Asset? asset);
+
+bool TryRegisterTempAsset(Asset asset);
+bool TryWriteAsset(string relativePath, Asset asset);
+
+bool TryUnloadAsset(Asset asset);
+bool TryUnloadAsset(Guid assetId);
+bool TryUnloadAsset(string relativePath);
+
+bool TryBuildAssetDir(string outputFile); fails if IsRootZip
+
+
+-----------Concrete Importers----------
+Shader:
+GLSL shader source file -> Spirv binary & reflection file
+
+Texture:
+Image file -> QOI image file
+
+GLTF:
+GLTF file -> Level file & Mesh files & Material files & Texture files
+
+-----------Concrete Assets----------
+Shader:
+GUID & Shader stage & Spirv binary data & Spirv reflection data
+
+PBRMaterial:
+GUID & AssetRef[] Textures & SamplerDesc[] & params
+
+Model:
+GUID & Transform & List<(StaticMesh[] meshes, AssetRef[] PBRMaterials)>
+
+Level:
+GUID & AssetRef[] Models
+
+Texture:
+GUID & Channels & image data
+
+Prefab:
+GUID & component[]
+-----------MISC----------
+
+StaticMesh:
+Vertex data & Index data
+
+-----------INFO----------
+Tangent Space <-> Model Space <-> World Space <-> View Space <-> Clip Space <-> NDC Space
