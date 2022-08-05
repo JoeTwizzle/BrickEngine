@@ -7,7 +7,7 @@ using BrickEngine.Core.Mathematics;
 
 namespace BrickEngine.Editor.Gui
 {
-    public static class ImHelper
+    public static partial class ImHelper
     {
         private const float StartPercentage = 0.4f;
         private readonly static Vector4 DifferentColor = new Vector4(217 / 255f, 24 / 255f, 17 / 255f, 1);
@@ -2079,7 +2079,7 @@ namespace BrickEngine.Editor.Gui
         }
         #endregion
         #region InputText
-        public static bool MultiInputText(string label, Span<string> vals, uint length)
+        public static bool MultiInputText(string label, Span<string> vals, uint maxLength, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
         {
             if (vals.Length <= 0)
             {
@@ -2112,7 +2112,7 @@ namespace BrickEngine.Editor.Gui
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, DifferentColor);
             }
-            bool xChanged = ImGui.InputText($" ##{label}X", ref x, length);
+            bool xChanged = ImGui.InputText($" ##{label}X", ref x, maxLength, flags);
             if (diffX)
             {
                 ImGui.PopStyleColor();
@@ -2128,7 +2128,7 @@ namespace BrickEngine.Editor.Gui
             ImGui.Columns(1);
             return xChanged;
         }
-        public static bool MultiInputTextMultiline(string label, Span<string> vals, uint length, Vector2 size)
+        public static bool MultiInputTextMultiline(string label, Span<string> vals, uint maxLength, Vector2 size, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
         {
             if (vals.Length <= 0)
             {
@@ -2160,7 +2160,7 @@ namespace BrickEngine.Editor.Gui
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, DifferentColor);
             }
-            bool xChanged = ImGui.InputTextMultiline($" ##{label}X", ref x, length, size);
+            bool xChanged = ImGui.InputTextMultiline($" ##{label}X", ref x, maxLength, size, flags);
             if (diffX)
             {
                 ImGui.PopStyleColor();

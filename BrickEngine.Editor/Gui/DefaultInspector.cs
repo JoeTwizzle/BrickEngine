@@ -13,45 +13,55 @@ using System.Threading.Tasks;
 
 namespace BrickEngine.Editor.Gui
 {
+    public enum EditResult
+    {
+        Unchanged,
+        Changed,
+        Removed,
+    }
     public static class DefaultInspector
     {
         static Dictionary<Type, FieldInfo[]> fieldCache = new Dictionary<Type, FieldInfo[]>();
         static readonly Dictionary<Type, int> typeRenderers;
         private unsafe static readonly delegate*<FieldInfo, Span<object>, bool>[] functions;
-        static List<FieldInfo> filteredFields = new List<FieldInfo>();
+        static readonly List<FieldInfo> filteredFields = new List<FieldInfo>();
         static DefaultInspector()
         {
             typeRenderers = new Dictionary<Type, int>()
             {
-                {typeof(string)     , 0  },
-                {typeof(int)        , 1  },
-                {typeof(Vector2i)   , 2  },
-                {typeof(Vector3i)   , 3  },
-                {typeof(Vector4i)   , 4  },
-                {typeof(float)      , 5  },
-                {typeof(Vector2)    , 6  },
-                {typeof(Vector3)    , 7  },
-                {typeof(Vector4)    , 8  },
-                {typeof(Quaternion) , 9  },
-                {typeof(double)     , 10  },
-                {typeof(bool)       , 11 },
+                {typeof(string)         , 0  },
+                {typeof(int)            , 1  },
+                {typeof(Vector2i)       , 2  },
+                {typeof(Vector3i)       , 3  },
+                {typeof(Vector4i)       , 4  },
+                {typeof(float)          , 5  },
+                {typeof(Vector2)        , 6  },
+                {typeof(Vector3)        , 7  },
+                {typeof(Vector4)        , 8  },
+                {typeof(Quaternion)     , 9  },
+                {typeof(double)         , 10 },
+                {typeof(bool)           , 11 },
+                //{typeof(List<>)         , 12 },
+                //{typeof(HashSet<>)      , 13 },
+                //{typeof(Dictionary<,>)  , 14 },
+                //{typeof(Array)          , 15 },
             };
             unsafe
             {
                 functions = new delegate*<FieldInfo, Span<object>, bool>[]
                 {
-                    &DrawText    ,
-                    &DrawInt     ,
-                    &DrawInt2    ,
-                    &DrawInt3    ,
-                    &DrawInt4    ,
-                    &DrawFloat   ,
-                    &DrawFloat2  ,
-                    &DrawFloat3  ,
-                    &DrawFloat4  ,
-                    &DrawFloat4  ,
-                    &DrawDouble  ,
-                    &DrawBool    ,
+                    &DrawText       ,
+                    &DrawInt        ,
+                    &DrawInt2       ,
+                    &DrawInt3       ,
+                    &DrawInt4       ,
+                    &DrawFloat      ,
+                    &DrawFloat2     ,
+                    &DrawFloat3     ,
+                    &DrawFloat4     ,
+                    &DrawQuaternion ,
+                    &DrawDouble     ,
+                    &DrawBool       ,
                 };
             }
         }
@@ -84,18 +94,18 @@ namespace BrickEngine.Editor.Gui
             return fieldsCached;
         }
 
-        public static bool DrawComponents(Span<object> components)
+        public static EditResult DrawComponents(Span<object> components)
         {
             if (components.Length <= 0)
             {
-                return false;
+                return EditResult.Unchanged;
             }
             var t = components[0].GetType();
             var fieldsCached = GetTypeCache(t);
             bool anyChanged = false;
             if (fieldsCached.Length <= 0)
             {
-                return false;
+                return EditResult.Unchanged;
             }
             if (ImGui.CollapsingHeader(t.Name, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow))
             {
@@ -119,7 +129,7 @@ namespace BrickEngine.Editor.Gui
                 ImGui.PopStyleVar();
                 ImGui.Unindent();
             }
-            return anyChanged;
+            return anyChanged ? EditResult.Changed : EditResult.Unchanged;
         }
 
         public static bool DrawText(FieldInfo field, Span<object> components)
@@ -164,10 +174,12 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragInt(field.Name, data, dragAttribute.Speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragInt(field.Name, data, speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
                 }
                 else
                 {
@@ -176,10 +188,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragInt(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragInt(field.Name, data, speed);
                 }
                 else
                 {
@@ -207,10 +222,12 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragInt2(field.Name, data, dragAttribute.Speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragInt2(field.Name, data, speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
                 }
                 else
                 {
@@ -219,10 +236,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragInt2(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragInt2(field.Name, data, speed);
                 }
                 else
                 {
@@ -250,10 +270,12 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragInt3(field.Name, data, dragAttribute.Speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragInt3(field.Name, data, speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
                 }
                 else
                 {
@@ -262,10 +284,12 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragInt3(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+                    dirty = ImHelper.MultiDragInt3(field.Name, data, speed);
                 }
                 else
                 {
@@ -293,10 +317,12 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragInt4(field.Name, data, dragAttribute.Speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragInt4(field.Name, data, speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
                 }
                 else
                 {
@@ -305,10 +331,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragInt4(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragInt4(field.Name, data, speed);
                 }
                 else
                 {
@@ -336,10 +365,12 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragFloat(field.Name, data, dragAttribute.Speed, rangeAttribute.Min, rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragFloat(field.Name, data, speed, rangeAttribute.Min, rangeAttribute.Max);
                 }
                 else
                 {
@@ -348,10 +379,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragFloat(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragFloat(field.Name, data, speed);
                 }
                 else
                 {
@@ -379,10 +413,12 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragFloat2(field.Name, data, dragAttribute.Speed, rangeAttribute.Min, rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragFloat2(field.Name, data, speed, rangeAttribute.Min, rangeAttribute.Max);
                 }
                 else
                 {
@@ -391,10 +427,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragFloat2(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragFloat2(field.Name, data, speed);
                 }
                 else
                 {
@@ -424,10 +463,12 @@ namespace BrickEngine.Editor.Gui
             var rangeAttribute = field.GetCustomAttribute<RangeAttribute>();
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragFloat3(field.Name, data, dragAttribute.Speed, rangeAttribute.Min, rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragFloat3(field.Name, data, speed, rangeAttribute.Min, rangeAttribute.Max);
                 }
                 else
                 {
@@ -436,10 +477,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragFloat3(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragFloat3(field.Name, data, speed);
                 }
                 else
                 {
@@ -482,10 +526,12 @@ namespace BrickEngine.Editor.Gui
             var rangeAttribute = field.GetCustomAttribute<RangeAttribute>();
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragFloat4(field.Name, data, dragAttribute.Speed, rangeAttribute.Min, rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragFloat4(field.Name, data, speed, rangeAttribute.Min, rangeAttribute.Max);
                 }
                 else
                 {
@@ -494,10 +540,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragFloat4(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragFloat4(field.Name, data, speed);
                 }
                 else
                 {
@@ -538,10 +587,12 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
-                    dirty = ImHelper.MultiDragFloat4(field.Name, data, dragAttribute.Speed, rangeAttribute.Min, rangeAttribute.Max);
+                    var speed = dragAttribute.Speed;
+
+                    dirty = ImHelper.MultiDragFloat4(field.Name, data, speed, rangeAttribute.Min, rangeAttribute.Max);
                 }
                 else
                 {
@@ -550,10 +601,13 @@ namespace BrickEngine.Editor.Gui
             }
             else
             {
-                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
-                if (dragAttribute != null)
+                var noDragAttribute = field.GetCustomAttribute<NoDragAttribute>();
+                if (noDragAttribute == null)
                 {
-                    dirty = ImHelper.MultiDragFloat4(field.Name, data, dragAttribute.Speed);
+                    var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                    var speed = dragAttribute?.Speed ?? 0.1f;
+
+                    dirty = ImHelper.MultiDragFloat4(field.Name, data, speed);
                 }
                 else
                 {
