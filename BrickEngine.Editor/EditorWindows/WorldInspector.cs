@@ -20,7 +20,7 @@ namespace BrickEngine.Editor.EditorWindows
             _game = EditorManager.GetSingleton<Game>();
             _entityChangedPool = editorManager.EditorMsgBus.GetPool<SelectedEnititiesChanged>();
         }
-        int[]? entities;
+        EcsLocalEntity[]? entities;
         int selectedEntity = -1;
         int prevSelectedEntity = 0;
         int prevWorldIndex = -1;
@@ -54,27 +54,30 @@ namespace BrickEngine.Editor.EditorWindows
         void DrawWorldEntities(EcsWorld world)
         {
             var selectedEnities = EditorManager.GetSelectedEntities(world);
-            int count = world.GetAllEntities(ref entities);
+            int count = world.GetAllPackedLocalEntities(ref entities);
             bool ctrlPressed = ImGui.IsKeyDown((int)Veldrid.Key.LeftControl) || ImGui.IsKeyDown((int)Veldrid.Key.RightControl);
             bool shiftPressed = ImGui.IsKeyDown((int)Veldrid.Key.LeftShift) || ImGui.IsKeyDown((int)Veldrid.Key.RightShift);
             for (int i = 0; i < count; i++)
             {
-                int entity = entities![i];
-
+                var entity = entities![i];
+                if (!entity.TryUnpack(world, out int entityId))
+                {
+                    continue;
+                }
                 bool isSelected = selectedEnities.Contains(entity);
                 if (isSelected)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(43 / 255f, 115 / 255f, 224 / 255f, 1));
+                    ImGui.PushStyleColor(ImGuiCol.Text, GuiColors.SelectedBlue);
                 }
 
-                if (ImGui.Selectable($"ID: {entity + 1}"))
+                if (ImGui.Selectable($"ID: {entityId + 1}"))
                 {
                     prevSelectedEntity = selectedEntity;
                     if (prevSelectedEntity < 0)
                     {
                         prevSelectedEntity = 0;
                     }
-                    selectedEntity = entity;
+                    selectedEntity = entityId;
                     if (ctrlPressed)
                     {
                         if (shiftPressed)
@@ -85,7 +88,7 @@ namespace BrickEngine.Editor.EditorWindows
                         }
                         else
                         {
-                            selectedEnities.Add(entity);
+                            EditorManager.AddSelectedEntity(world, entity);
                         }
                     }
                     else
@@ -98,8 +101,7 @@ namespace BrickEngine.Editor.EditorWindows
                         }
                         else
                         {
-                            selectedEnities.Clear();
-                            selectedEnities.Add(entity);
+                            EditorManager.SetSelectedEntity(world, entity);
                         }
                     }
                     _entityChangedPool.Add(MessageId, new SelectedEnititiesChanged());
@@ -113,14 +115,18 @@ namespace BrickEngine.Editor.EditorWindows
             {
                 if (!delayedAdd.Additive)
                 {
-                    selectedEnities.Clear();
+                    EditorManager.ClearSelectedEntities(world);
                 }
                 for (int i = 0; i < count; i++)
                 {
-                    int entity = entities![i];
-                    if (entity >= delayedAdd.SelectedEntityRange.Start.Value && entity <= delayedAdd.SelectedEntityRange.End.Value)
+                    var entity = entities![i];
+                    if (!entity.TryUnpack(world, out int entityId))
                     {
-                        selectedEnities.Add(entity);
+                        continue;
+                    }
+                    if (entityId >= delayedAdd.SelectedEntityRange.Start.Value && entityId <= delayedAdd.SelectedEntityRange.End.Value)
+                    {
+                        EditorManager.AddSelectedEntity(world, entity);
                     }
                 }
                 delayedAdd = default;

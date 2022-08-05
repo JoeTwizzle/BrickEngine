@@ -40,7 +40,6 @@ namespace BrickEngine.Editor
         private void Game_OnCreateDefaultWorld(EcsWorld world)
         {
             world.AllowPool<GigaTestComponent>();
-
         }
 
         private void Game_OnRegisterWorlds()

@@ -14,16 +14,18 @@ namespace BrickEngine.Editor
     {
         private readonly Dictionary<Type, object> _injectedSingletons;
         private readonly Dictionary<string, object> _injected;
+        private readonly Dictionary<EcsWorld, List<EcsLocalEntity>> _selectedEntites;
         public readonly int MessageId = 0;
         public readonly Game Game;
         public readonly WindowManager WindowManager;
-        public readonly Dictionary<EcsWorld, List<int>> SelectedEntites;
         public readonly MessageBus EditorMsgBus;
-
+        private int selectedEntityCount = 0;
+        public IReadOnlyDictionary<EcsWorld, List<EcsLocalEntity>> SelectedEntites => _selectedEntites;
+        public int SelectedEntityCount => selectedEntityCount;
         public EditorManager(Game game)
         {
             EditorMsgBus = new MessageBus();
-            SelectedEntites = new Dictionary<EcsWorld, List<int>>();
+            _selectedEntites = new Dictionary<EcsWorld, List<EcsLocalEntity>>();
             _injected = new Dictionary<string, object>();
             _injectedSingletons = new Dictionary<Type, object>();
             Game = game;
@@ -42,57 +44,63 @@ namespace BrickEngine.Editor
             return (T)_injected[identifier];
         }
 
-        public void AddSelectedEntity(EcsWorld world, int entity)
+        public void AddSelectedEntity(EcsWorld world, EcsLocalEntity entity)
         {
-            if (!SelectedEntites.TryGetValue(world, out var entities))
+            if (!_selectedEntites.TryGetValue(world, out var entities))
             {
-                entities = new List<int>();
-                SelectedEntites.Add(world, entities);
+                entities = new List<EcsLocalEntity>();
+                _selectedEntites.Add(world, entities);
             }
             entities.Add(entity);
+            selectedEntityCount++;
         }
 
-        public void SetSelectedEntity(EcsWorld world, int entity)
+        public void SetSelectedEntity(EcsWorld world, EcsLocalEntity entity)
         {
-            if (!SelectedEntites.TryGetValue(world, out var entities))
+            if (!_selectedEntites.TryGetValue(world, out var entities))
             {
-                entities = new List<int>();
-                SelectedEntites.Add(world, entities);
+                entities = new List<EcsLocalEntity>();
+                _selectedEntites.Add(world, entities);
             }
+            selectedEntityCount -= entities.Count;
             entities.Clear();
             entities.Add(entity);
+            selectedEntityCount++;
         }
 
-        public List<int> GetSelectedEntities(EcsWorld world)
+        public List<EcsLocalEntity> GetSelectedEntities(EcsWorld world)
         {
-            if (!SelectedEntites.TryGetValue(world, out var entities))
+            if (!_selectedEntites.TryGetValue(world, out var entities))
             {
-                entities = new List<int>();
-                SelectedEntites.Add(world, entities);
+                entities = new List<EcsLocalEntity>();
+                _selectedEntites.Add(world, entities);
                 var pool = EditorMsgBus.GetPool<SelectedEnititiesChanged>();
                 pool.Add(MessageId, new SelectedEnititiesChanged());
             }
             return entities;
         }
 
-        public void SetSelectedEntities(EcsWorld world, int entity)
+        public void RemoveSelectedEntity(EcsWorld world, EcsLocalEntity entity)
         {
-            if (!SelectedEntites.TryGetValue(world, out var entities))
+            if (!_selectedEntites.TryGetValue(world, out var entities))
             {
-                entities = new List<int>();
-                SelectedEntites.Add(world, entities);
+                entities = new List<EcsLocalEntity>();
+                _selectedEntites.Add(world, entities);
             }
-            entities.Clear();
-            entities.Add(entity);
+            if (entities.Remove(entity))
+            {
+                selectedEntityCount--;
+            }
         }
 
         public void ClearSelectedEntities(EcsWorld world)
         {
-            if (!SelectedEntites.TryGetValue(world, out var entities))
+            if (!_selectedEntites.TryGetValue(world, out var entities))
             {
-                entities = new List<int>();
-                SelectedEntites.Add(world, entities);
+                entities = new List<EcsLocalEntity>();
+                _selectedEntites.Add(world, entities);
             }
+            selectedEntityCount -= entities.Count;
             entities.Clear();
         }
 
