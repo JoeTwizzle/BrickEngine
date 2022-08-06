@@ -62,7 +62,7 @@ namespace BrickEngine.Editor
                 entities = new List<EcsLocalEntity>();
                 _selectedEntites.Add(world, entities);
             }
-            selectedEntityCount -= entities.Count;
+            ClearSelectedEntities();
             entities.Clear();
             entities.Add(entity);
             selectedEntityCount++;
@@ -91,6 +91,15 @@ namespace BrickEngine.Editor
             {
                 selectedEntityCount--;
             }
+        }
+
+        public void ClearSelectedEntities()
+        {
+            foreach (var item in _selectedEntites)
+            {
+                item.Value.Clear();
+            }
+            selectedEntityCount = 0;
         }
 
         public void ClearSelectedEntities(EcsWorld world)

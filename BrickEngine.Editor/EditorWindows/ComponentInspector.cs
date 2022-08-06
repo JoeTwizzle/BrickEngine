@@ -66,6 +66,10 @@ namespace BrickEngine.Editor.EditorWindows
                 {
                     var world = worldList.Key;
                     var types = _sharedTypes[world];
+                    string worldName = EditorManager.Game.AllWorldsReverse[world];
+                    ImGui.PushID(worldName);
+                    ImGui.Separator();
+                    ImGui.TextUnformatted(worldName);
                     foreach (var type in types)
                     {
                         var pool = world.GetPoolByType(type);
@@ -82,7 +86,16 @@ namespace BrickEngine.Editor.EditorWindows
                         }
                         //Todo: set some changed flag!
                         var result = DefaultInspector.DrawComponents(array.AsSpan().Slice(0, entities.Count));
-                        if (result == EditResult.Changed)
+                        if (result == EditResult.Removed)
+                        {
+                            for (int i = 0; i < entities.Count; i++)
+                            {
+                                pool.Del(entities[i].Unpack());
+                            }
+                            RecalulateComponents();
+                            _entityChangedPool.Add(MessageId, new SelectedEnititiesChanged());
+                        }
+                        else if (result == EditResult.Changed)
                         {
                             for (int i = 0; i < entities.Count; i++)
                             {
@@ -92,6 +105,7 @@ namespace BrickEngine.Editor.EditorWindows
                         ArrayPool<object>.Shared.Return(array);
                         ImGui.Spacing();
                     }
+                    ImGui.PopID();
                     ImGui.Spacing();
                 }
                 ImGui.Spacing();
@@ -128,26 +142,37 @@ namespace BrickEngine.Editor.EditorWindows
             _allAllowedTypesSet.Clear();
             _sharedTypes.Clear();
             bool typesFirst = true;
+            Type[] allTypes = null!;
             foreach (var item in EditorManager.SelectedEntites)
             {
                 var world = item.Key;
-                Type[] allTypes = null!;
                 int typeCount = world.GetAllowedTypes(ref allTypes!);
+                ArraySegment<Type> allowedTypeRange = new ArraySegment<Type>(allTypes, 0, typeCount);
                 if (typesFirst)
                 {
-                    for (int i = 0; i < typeCount; i++)
+                    for (int i = 0; i < allowedTypeRange.Count; i++)
                     {
-                        _allAllowedTypesSet.Add(allTypes[i]);
+                        _allAllowedTypesSet.Add(allowedTypeRange[i]);
                     }
                     typesFirst = false;
                 }
-                else
+                foreach (var type in _allAllowedTypesSet)
                 {
-                    for (int i = 0; i < typeCount; i++)
+                    if (!allowedTypeRange.Contains(type))
                     {
-                        _allAllowedTypesSet.Remove(allTypes[i]);
+                        _droppedTypes.Add(type);
                     }
                 }
+            }
+            foreach (var type in _droppedTypes)
+            {
+                _allAllowedTypesSet.Remove(type);
+            }
+            _droppedTypes.Clear();
+
+            foreach (var item in EditorManager.SelectedEntites)
+            {
+                var world = item.Key;
                 if (!_sharedTypes.TryGetValue(world, out var types))
                 {
                     types = new List<Type>();

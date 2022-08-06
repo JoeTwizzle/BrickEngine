@@ -107,9 +107,18 @@ namespace BrickEngine.Editor.Gui
             {
                 return EditResult.Unchanged;
             }
-            if (ImGui.CollapsingHeader(t.Name, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow))
+            bool open = ImGui.CollapsingHeader(t.Name, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow);
+            if (ImGui.BeginPopupContextItem(t.Name, ImGuiPopupFlags.MouseButtonRight))
             {
-                ImGui.Indent();
+                if (ImGui.MenuItem("Remove"))
+                {
+                    ImGui.EndPopup();
+                    return EditResult.Removed;
+                }
+                ImGui.EndPopup();
+            }
+            if (open)
+            {
                 ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0f);
                 foreach (var field in fieldsCached)
                 {
@@ -127,7 +136,6 @@ namespace BrickEngine.Editor.Gui
                     }
                 }
                 ImGui.PopStyleVar();
-                ImGui.Unindent();
             }
             return anyChanged ? EditResult.Changed : EditResult.Unchanged;
         }
@@ -174,7 +182,7 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -222,7 +230,7 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -270,7 +278,7 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -317,7 +325,7 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -365,7 +373,7 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -413,7 +421,7 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -463,7 +471,7 @@ namespace BrickEngine.Editor.Gui
             var rangeAttribute = field.GetCustomAttribute<RangeAttribute>();
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -526,7 +534,7 @@ namespace BrickEngine.Editor.Gui
             var rangeAttribute = field.GetCustomAttribute<RangeAttribute>();
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
@@ -587,7 +595,7 @@ namespace BrickEngine.Editor.Gui
             bool dirty;
             if (rangeAttribute != null)
             {
-                 var dragAttribute = field.GetCustomAttribute<DragAttribute>();
+                var dragAttribute = field.GetCustomAttribute<DragAttribute>();
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;

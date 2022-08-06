@@ -28,6 +28,10 @@ namespace BrickEngine.Editor.EditorWindows
         {
             if (BeginWindow(_title))
             {
+                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !ImGui.IsAnyItemHovered())
+                {
+                    EditorManager.ClearSelectedEntities();
+                }
                 if (ImGui.BeginTabBar($"Worlds##{Id}"))
                 {
                     int worldIndex = 0;
@@ -35,7 +39,6 @@ namespace BrickEngine.Editor.EditorWindows
                     {
                         if (ImGui.BeginTabItem(item.Key))
                         {
-
                             if (prevWorldIndex != worldIndex)
                             {
                                 prevWorldIndex = worldIndex;
@@ -82,8 +85,6 @@ namespace BrickEngine.Editor.EditorWindows
                 }
 
                 bool clicked = ImGui.Selectable($"ID: {entityId + 1}");
-
-
                 if (clicked)
                 {
                     prevSelectedEntity = selectedEntity;
@@ -129,7 +130,7 @@ namespace BrickEngine.Editor.EditorWindows
             {
                 if (!delayedAdd.Additive)
                 {
-                    EditorManager.ClearSelectedEntities(world);
+                    EditorManager.ClearSelectedEntities();
                 }
                 for (int i = 0; i < count; i++)
                 {

@@ -628,31 +628,31 @@ void main()
             Vector2 mousePosition = snapshot.MousePosition;
 
             // Determine if any of the mouse buttons were pressed during this snapshot period, even if they are no longer held.
-            bool leftPressed = false;
-            bool middlePressed = false;
-            bool rightPressed = false;
-            foreach (MouseButtonEvent me in snapshot.MouseEvents)
-            {
-                if (me.Down)
-                {
-                    switch (me.MouseButton)
-                    {
-                        case MouseButton.Left:
-                            leftPressed = true;
-                            break;
-                        case MouseButton.Middle:
-                            middlePressed = true;
-                            break;
-                        case MouseButton.Right:
-                            rightPressed = true;
-                            break;
-                    }
-                }
-            }
+            //bool leftPressed = false;
+            //bool middlePressed = false;
+            //bool rightPressed = false;
+            //foreach (MouseButtonEvent me in snapshot.MouseEvents)
+            //{
+            //    if (me.Down)
+            //    {
+            //        switch (me.MouseButton)
+            //        {
+            //            case MouseButton.Left:
+            //                leftPressed = true;
+            //                break;
+            //            case MouseButton.Middle:
+            //                middlePressed = true;
+            //                break;
+            //            case MouseButton.Right:
+            //                rightPressed = true;
+            //                break;
+            //        }
+            //    }
+            //}
 
-            io.MouseDown[0] = leftPressed || snapshot.MouseDown.HasFlag(MouseButton.Left);
-            io.MouseDown[1] = rightPressed || snapshot.MouseDown.HasFlag(MouseButton.Right);
-            io.MouseDown[2] = middlePressed || snapshot.MouseDown.HasFlag(MouseButton.Middle);
+            //io.MouseDown[0] = leftPressed || snapshot.MouseDown.HasFlag(MouseButton.Left);
+            //io.MouseDown[1] = rightPressed || snapshot.MouseDown.HasFlag(MouseButton.Right);
+            //io.MouseDown[2] = middlePressed || snapshot.MouseDown.HasFlag(MouseButton.Middle);
 
             if (p_sdl_GetGlobalMouseState == null)
             {
