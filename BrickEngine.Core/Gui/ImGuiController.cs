@@ -651,8 +651,8 @@ void main()
             }
 
             io.MouseDown[0] = leftPressed || snapshot.MouseDown.HasFlag(MouseButton.Left);
-            io.MouseDown[1] = middlePressed || snapshot.MouseDown.HasFlag(MouseButton.Right);
-            io.MouseDown[2] = rightPressed || snapshot.MouseDown.HasFlag(MouseButton.Middle);
+            io.MouseDown[1] = rightPressed || snapshot.MouseDown.HasFlag(MouseButton.Right);
+            io.MouseDown[2] = middlePressed || snapshot.MouseDown.HasFlag(MouseButton.Middle);
 
             if (p_sdl_GetGlobalMouseState == null)
             {
@@ -664,8 +664,8 @@ void main()
             {
                 uint buttons = p_sdl_GetGlobalMouseState(&x, &y);
                 io.MouseDown[0] = (buttons & 0b0001) != 0;
-                io.MouseDown[1] = (buttons & 0b0010) != 0;
-                io.MouseDown[2] = (buttons & 0b0100) != 0;
+                io.MouseDown[1] = (buttons & 0b0100) != 0;
+                io.MouseDown[2] = (buttons & 0b0010) != 0;
             }
 
             io.MousePos = new Vector2(x, y);
