@@ -14,6 +14,7 @@ namespace BrickEngine.Editor.Gui
         #region DragInt
         public static bool MultiDragInt(string label, Span<int> vals, float speed, int minVal = int.MinValue, int maxVal = int.MaxValue)
         {
+            
             if (vals.Length <= 0)
             {
                 return false;
@@ -34,7 +35,9 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
+            
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
             ImGui.Text(label);
@@ -57,8 +60,8 @@ namespace BrickEngine.Editor.Gui
                     vec = x;
                 }
             }
-
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         public static bool MultiDragInt2(string label, Span<Vector2i> vals, float speed, int minVal = int.MinValue, int maxVal = int.MaxValue)
@@ -88,6 +91,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 2;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -131,6 +135,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged;
         }
         public static bool MultiDragInt3(string label, Span<Vector3i> vals, float speed, int minVal = int.MinValue, int maxVal = int.MaxValue)
@@ -163,6 +168,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 3;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -224,6 +230,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged;
         }
         public static bool MultiDragInt4(string label, Span<Vector4i> vals, float speed, int minVal = int.MinValue, int maxVal = int.MaxValue)
@@ -259,6 +266,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 4;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / 4;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -337,6 +345,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged || wChanged;
         }
 
@@ -366,6 +375,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -392,6 +402,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         public static bool MultiSliderInt2(string label, Span<Vector2i> vals, int minVal = int.MinValue, int maxVal = int.MaxValue)
@@ -421,6 +432,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 2;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -465,6 +477,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged;
         }
         public static bool MultiSliderInt3(string label, Span<Vector3i> vals, int minVal = int.MinValue, int maxVal = int.MaxValue)
@@ -497,6 +510,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 3;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -558,6 +572,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged;
         }
         public static bool MultiSliderInt4(string label, Span<Vector4i> vals, int minVal = int.MinValue, int maxVal = int.MaxValue)
@@ -593,6 +608,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 4;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / 4;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -671,6 +687,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged || wChanged;
         }
         #endregion
@@ -699,6 +716,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -725,6 +743,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         public static bool MultiInputInt2(string label, Span<Vector2i> vals)
@@ -754,6 +773,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 2;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -796,6 +816,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged;
         }
         public static bool MultiInputInt3(string label, Span<Vector3i> vals)
@@ -828,6 +849,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 3;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -886,6 +908,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged;
         }
         public static bool MultiInputInt4(string label, Span<Vector4i> vals)
@@ -921,6 +944,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 4;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / 4;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -995,6 +1019,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged || wChanged;
         }
         #endregion
@@ -1021,6 +1046,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1047,6 +1073,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         public static bool MultiDragFloat2(string label, Span<Vector2> vals, float speed, float minVal = float.MinValue, float maxVal = float.MaxValue)
@@ -1076,6 +1103,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 2;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1120,6 +1148,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged;
         }
         public static bool MultiDragFloat3(string label, Span<Vector3> vals, float speed, float minVal = float.MinValue, float maxVal = float.MaxValue)
@@ -1152,6 +1181,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 3;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1210,6 +1240,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged;
         }
         public static bool MultiDragFloat4(string label, Span<Vector4> vals, float speed, float minVal = float.MinValue, float maxVal = float.MaxValue)
@@ -1245,6 +1276,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 4;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / 4;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1319,6 +1351,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged || wChanged;
         }
         #endregion
@@ -1347,6 +1380,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1373,6 +1407,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         public static bool MultiSliderFloat2(string label, Span<Vector2> vals, float minVal = float.MinValue, float maxVal = float.MaxValue)
@@ -1402,6 +1437,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 2;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1444,6 +1480,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged;
         }
         public static bool MultiSliderFloat3(string label, Span<Vector3> vals, float minVal = float.MinValue, float maxVal = float.MaxValue)
@@ -1476,6 +1513,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 3;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1534,6 +1572,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged;
         }
         public static bool MultiSliderFloat4(string label, Span<Vector4> vals, float minVal = float.MinValue, float maxVal = float.MaxValue)
@@ -1569,6 +1608,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 4;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / 4;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1642,6 +1682,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged || wChanged;
         }
         #endregion
@@ -1670,6 +1711,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1695,6 +1737,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         public static bool MultiInputFloat2(string label, Span<Vector2> vals)
@@ -1724,6 +1767,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 2;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1766,6 +1810,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged;
         }
         public static bool MultiInputFloat3(string label, Span<Vector3> vals)
@@ -1798,6 +1843,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 3;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1856,6 +1902,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged;
         }
         public static bool MultiInputFloat4(string label, Span<Vector4> vals)
@@ -1891,6 +1938,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 4;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / 4f;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -1971,6 +2019,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged || yChanged || zChanged || wChanged;
         }
         #endregion
@@ -1999,6 +2048,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -2024,6 +2074,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         #endregion
@@ -2051,6 +2102,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -2075,6 +2127,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         #endregion
@@ -2101,6 +2154,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -2126,6 +2180,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         public static bool MultiInputTextMultiline(string label, Span<string> vals, uint maxLength, Vector2 size, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
@@ -2150,6 +2205,7 @@ namespace BrickEngine.Editor.Gui
             const int dims = 1;
             float widthPerColumn = (xSpace * (1 - StartPercentage)) / dims;
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -2174,6 +2230,7 @@ namespace BrickEngine.Editor.Gui
                 }
             }
             ImGui.Columns(1);
+            ImGui.EndGroup();
             return xChanged;
         }
         #endregion

@@ -14,16 +14,4 @@
     <ProjectReference Include="..\BrickEngine.Importers\BrickEngine.Importers.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="ImGui.NET">
-      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImGui.NET\netstandard2.0\ImGui.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ImGuizmo.NET">
-      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImGuizmo.NET\netstandard2.0\ImGuizmo.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ImPlot.NET">
-      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImPlot.NET\netstandard2.0\ImPlot.NET.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

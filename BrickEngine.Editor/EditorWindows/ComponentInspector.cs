@@ -1,9 +1,12 @@
-﻿using BrickEngine.Editor.Gui;
+﻿using BrickEngine.Editor.Commands;
+using BrickEngine.Editor.Gui;
 using BrickEngine.Editor.Messages;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +24,7 @@ namespace BrickEngine.Editor.EditorWindows
         string input;
         bool _changedInternal;
         bool _suggestionsOpen;
+        object[]? oldVals;
         public ComponentInspector(EditorManager editorManager) : base(editorManager)
         {
             input = "";
@@ -32,36 +36,43 @@ namespace BrickEngine.Editor.EditorWindows
             _allowedTypeNames = Array.Empty<string>();
             _allAllowedTypes = Array.Empty<Type>();
         }
+
         protected override void OnOpen()
         {
             RecalulateComponents();
         }
+
+        void CheckSelection()
+        {
+            if (_changedInternal || _entityChangedPool.HasMessages)
+            {
+                _changedInternal = false;
+                bool changed = false;
+                foreach (var item in EditorManager.SelectedEntites)
+                {
+                    for (int i = item.Value.Count - 1; i >= 0; i--)
+                    {
+                        if (!item.Value[i].TryUnpack(item.Key, out _))
+                        {
+                            EditorManager.RemoveSelectedEntity(item.Key, item.Value[i]);
+                            changed = true;
+                        }
+                    }
+                }
+                if (changed)
+                {
+                    _changedInternal = true;
+                    _entityChangedPool.Add(MessageId, new SelectedEnititiesChanged());
+                }
+                RecalulateComponents();
+            }
+        }
+
         protected override void OnUpdate()
         {
             if (BeginWindow(_title))
             {
-                if (_changedInternal || _entityChangedPool.HasMessages)
-                {
-                    _changedInternal = false;
-                    bool changed = false;
-                    foreach (var item in EditorManager.SelectedEntites)
-                    {
-                        for (int i = item.Value.Count - 1; i >= 0; i--)
-                        {
-                            if (!item.Value[i].TryUnpack(item.Key, out _))
-                            {
-                                EditorManager.RemoveSelectedEntity(item.Key, item.Value[i]);
-                                changed = true;
-                            }
-                        }
-                    }
-                    if (changed)
-                    {
-                        _changedInternal = true;
-                        _entityChangedPool.Add(MessageId, new SelectedEnititiesChanged());
-                    }
-                    RecalulateComponents();
-                }
+                CheckSelection();
                 foreach (var worldList in EditorManager.SelectedEntites)
                 {
                     var world = worldList.Key;
@@ -85,23 +96,9 @@ namespace BrickEngine.Editor.EditorWindows
                             array[i] = pool.GetRaw(entity);
                         }
                         //Todo: set some changed flag!
-                        var result = DefaultInspector.DrawComponents(array.AsSpan().Slice(0, entities.Count));
-                        if (result == EditResult.Removed)
-                        {
-                            for (int i = 0; i < entities.Count; i++)
-                            {
-                                pool.Del(entities[i].Unpack());
-                            }
-                            RecalulateComponents();
-                            _entityChangedPool.Add(MessageId, new SelectedEnititiesChanged());
-                        }
-                        else if (result == EditResult.Changed)
-                        {
-                            for (int i = 0; i < entities.Count; i++)
-                            {
-                                pool.SetRaw(worldList.Value[i].Unpack(), array[i]);
-                            }
-                        }
+                        var span = array.AsSpan().Slice(0, entities.Count);
+                        var result = DefaultInspector.DrawComponents(span, out var activeField);
+                        EvalResult(result, type, activeField, span);
                         ArrayPool<object>.Shared.Return(array);
                         ImGui.Spacing();
                     }
@@ -110,34 +107,87 @@ namespace BrickEngine.Editor.EditorWindows
                 }
                 ImGui.Spacing();
                 ImGui.Separator();
-                if (EditorManager.SelectedEntityCount > 0)
-                {
-                    ImHelper.InputTextAutoComplete("Component Name", ref input, 128, out int index, ref _suggestionsOpen, _allowedTypeNames);
-                    if (ImGui.Button("Add") && index != -1)
-                    {
-                        Type componentType = _allAllowedTypes[index];
-                        foreach (var worldList in EditorManager.SelectedEntites)
-                        {
-                            var world = worldList.Key;
-                            var entities = worldList.Value;
-                            var pool = world.GetPoolByType(componentType)!;
-                            for (int i = 0; i < entities.Count; i++)
-                            {
-                                int entity = entities[i].Unpack();
-                                if (!pool.Has(entity))
-                                {
-                                    pool.AddRaw(entity);
-                                }
-                            }
-                        }
-                        RecalulateComponents();
-                    }
-                }
+                DrawAddButton();
             }
             ImGui.End();
         }
 
-        void RecalulateComponents()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EvalResult(EditResult result, Type componentType, FieldInfo? activeField, Span<object> results)
+        {
+            if (result == EditResult.Unchanged)
+            {
+                return;
+            }
+            if (result.HasFlag(EditResult.EditStart) && activeField is not null)
+            {
+                oldVals = new object[EditorManager.SelectedEntites.Values.Sum(x => x.Count)];
+                foreach (var worldList in EditorManager.SelectedEntites)
+                {
+                    var world = worldList.Key;
+                    var entities = worldList.Value;
+                    var pool = world.GetPoolByType(componentType)!;
+                    for (int i = 0; i < entities.Count; i++)
+                    {
+                        worldList.Value[i].TryUnpack(worldList.Key, out int entity);
+                        oldVals[i] = activeField.GetValue(pool.GetRaw(entity))!;
+                    }
+                }
+            }
+            if (result.HasFlag(EditResult.EditEnd) && activeField is not null && oldVals is not null && results.Length > 0)
+            {
+                var selEntities = new Dictionary<EcsWorld, EcsLocalEntity[]>(EditorManager.SelectedEntites.Count);
+                foreach (var worldList in EditorManager.SelectedEntites)
+                {
+                    selEntities.Add(worldList.Key, worldList.Value.ToArray());
+                }
+                Console.WriteLine("Pew");
+                EditorManager.ActionManager.Execute(new ComponentFieldChangedCommand(selEntities, componentType, activeField, oldVals, activeField.GetValue(results[0])!));
+            }
+            if (result.HasFlag(EditResult.Removed))
+            {
+                var selEntities = new Dictionary<EcsWorld, EcsLocalEntity[]>(EditorManager.SelectedEntites.Count);
+                foreach (var worldList in EditorManager.SelectedEntites)
+                {
+                    selEntities.Add(worldList.Key, worldList.Value.ToArray());
+                }
+                EditorManager.ActionManager.Execute(new ComponentRemoveCommand(EditorManager, selEntities, componentType));
+                RecalulateComponents();
+            }
+            if (result.HasFlag(EditResult.Changed))
+            {
+                foreach (var worldList in EditorManager.SelectedEntites)
+                {
+                    var world = worldList.Key;
+                    var pool = world.GetPoolByType(componentType)!;
+                    for (int i = 0; i < results.Length; i++)
+                    {
+                        pool.SetRaw(worldList.Value[i].Unpack(), results[i]);
+                    }
+                }
+            }
+        }
+
+        private void DrawAddButton()
+        {
+            if (EditorManager.SelectedEntityCount > 0)
+            {
+                ImHelper.InputTextAutoComplete("Component Name", ref input, 128, out int index, ref _suggestionsOpen, _allowedTypeNames);
+                if (ImGui.Button("Add") && index != -1)
+                {
+                    var selEntities = new Dictionary<EcsWorld, EcsLocalEntity[]>(EditorManager.SelectedEntites.Count);
+                    foreach (var worldList in EditorManager.SelectedEntites)
+                    {
+                        selEntities.Add(worldList.Key, worldList.Value.ToArray());
+                    }
+                    Type componentType = _allAllowedTypes[index];
+                    EditorManager.ActionManager.Execute(new ComponentAddCommand(EditorManager, selEntities, componentType));
+                    RecalulateComponents();
+                }
+            }
+        }
+
+        private void RecalulateComponents()
         {
             _allAllowedTypesSet.Clear();
             _sharedTypes.Clear();

@@ -20,7 +20,7 @@ namespace BrickEngine.Editor
         {
             _editor = new EditorManager(game);
             _game = game;
-            _imGuiController = new ImGuiController(_game.GraphicsDevice, _game.Window);
+            _imGuiController = new ImGuiController(_game.GraphicsDevice, _game.Window, _game.GraphicsDevice.MainSwapchain!.Framebuffer.OutputDescription, _game.Window.Width, _game.Window.Height);
             _cl = _game.ResourceFactory.CreateCommandList();
             game.OnResized += Game_OnResized;
             game.OnCreateDefaultWorld += Game_OnCreateDefaultWorld;
@@ -29,6 +29,7 @@ namespace BrickEngine.Editor
             game.OnInit += Game_OnInit;
             game.OnPreUpdate += Game_OnPreUpdate;
             game.OnPostUpdate += Game_OnPostUpdate;
+            game.OnPostSwap += Game_OnPostSwap;
             game.OnDisposeGame += Game_OnDisposeGame;
         }
 
@@ -66,24 +67,28 @@ namespace BrickEngine.Editor
 
         private void Game_OnPreUpdate()
         {
-
+            _imGuiController.Update(_game.DeltaTime, _game.InputSnapshot);
         }
 
         private void Game_OnPostUpdate()
         {
-            _imGuiController.Update(_game, _game.InputSnapshot);
+            ImGui.ShowDemoWindow();
+            _editor.Update();
             _cl.Begin();
             _cl.SetFramebuffer(_game.GraphicsDevice.SwapchainFramebuffer!);
             _cl.SetFullViewport(0);
             _cl.ClearColorTarget(0, RgbaFloat.Blue);
             //_cl.ClearDepthStencil(0);
-            _editor.Update();
             _imGuiController.Render(_game.GraphicsDevice, _cl);
             //_cl.SetFramebuffer(_game.GraphicsDevice.SwapchainFramebuffer!);
             //_cl.ClearColorTarget(0, RgbaFloat.Green);
             //_cl.SetFullViewport(0);
             _cl.End();
             _game.SubmitCommands(_cl);
+        }
+
+        private void Game_OnPostSwap()
+        {
             _imGuiController.SwapExtraWindows(_game.GraphicsDevice);
         }
 

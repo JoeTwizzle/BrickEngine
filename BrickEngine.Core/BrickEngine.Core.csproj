@@ -18,31 +18,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Toolkit.HighPerformance" Version="7.1.2" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.0.0" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.5.0" />
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\ecslite\ecslite\EcsLite.csproj" />
+    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImGui.NET\ImGui.NET.csproj" />
+    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImGuizmo.NET\ImGuizmo.NET.csproj" />
+    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImNodes.NET\ImNodes.NET.csproj" />
+    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImPlot.NET\ImPlot.NET.csproj" />
     <ProjectReference Include="..\..\veldrid\src\Veldrid.RenderDoc\Veldrid.RenderDoc.csproj" />
     <ProjectReference Include="..\..\veldrid\src\Veldrid.SDL2\Veldrid.SDL2.csproj" />
     <ProjectReference Include="..\..\veldrid\src\Veldrid.StartupUtilities\Veldrid.StartupUtilities.csproj" />
     <ProjectReference Include="..\..\veldrid\src\Veldrid.Utilities\Veldrid.Utilities.csproj" />
     <ProjectReference Include="..\..\veldrid\src\Veldrid\Veldrid.csproj" />
     <ProjectReference Include="..\BrickEngine.Assets\BrickEngine.Assets.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="ImGui.NET">
-      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImGui.NET\netstandard2.0\ImGui.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ImGuizmo.NET">
-      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImGuizmo.NET\netstandard2.0\ImGuizmo.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ImPlot.NET">
-      <HintPath>..\..\ImGui.NET-docking\bin\Release\ImPlot.NET\netstandard2.0\ImPlot.NET.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

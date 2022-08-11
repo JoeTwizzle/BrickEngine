@@ -24,6 +24,7 @@ namespace BrickEngine.Editor.Gui
                     selectedIndex = i;
                 }
             }
+            ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
@@ -62,7 +63,7 @@ namespace BrickEngine.Editor.Gui
                             ImGui.PopStyleColor();
                         }
                         windowSelected |= ImGui.IsItemFocused();
-                        if (selected || (ImGui.IsItemHovered() && ImGui.IsKeyPressed((int)ImGuiKey.Enter, false)))
+                        if (selected || (ImGui.IsItemHovered() && ImGui.IsKeyPressed(ImGuiKey.Enter, false)))
                         {
                             selectedIndex = i;
                             input = suggestions[i];
@@ -86,7 +87,7 @@ namespace BrickEngine.Editor.Gui
                     isOpen = true;
                 }
             }
-
+            ImGui.EndGroup();
             return changed;
         }
         public static bool MultiInputTextAutoComplete(string label, Span<string> input, uint maxLength, ref int selectedIndex, ref bool isOpen, Span<string> suggestions, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
@@ -105,6 +106,7 @@ namespace BrickEngine.Editor.Gui
                     selectedIndex = i;
                 }
             }
+            ImGui.BeginGroup();
             if (isInList)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, GuiColors.SelectedBlue);
@@ -134,7 +136,7 @@ namespace BrickEngine.Editor.Gui
                             ImGui.PopStyleColor();
                         }
                         windowSelected |= ImGui.IsItemFocused();
-                        if (selected || (ImGui.IsItemHovered() && ImGui.IsKeyPressed((int)ImGuiKey.Enter)))
+                        if (selected || (ImGui.IsItemHovered() && ImGui.IsKeyPressed(ImGuiKey.Enter)))
                         {
                             for (int j = 0; j < input.Length; j++)
                             {
@@ -161,6 +163,7 @@ namespace BrickEngine.Editor.Gui
                     isOpen = true;
                 }
             }
+            ImGui.EndGroup();
             return changed;
         }
     }

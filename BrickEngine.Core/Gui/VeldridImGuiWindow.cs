@@ -60,7 +60,7 @@ namespace BrickEngine.Gui
             SwapchainSource scSource = VeldridStartup.GetSwapchainSource(_window);
             SwapchainDescription scDesc = new SwapchainDescription(scSource, (uint)_window.Width, (uint)_window.Height, null, true, false);
             _sc = _gd.ResourceFactory.CreateSwapchain(scDesc);
-            _window.Resized += () => _resized = true;
+            _window.Resized += () => _sc.Resize((uint)_window.Width, (uint)_window.Height);
 
             vp.PlatformUserData = (IntPtr)_gcHandle;
         }
@@ -76,16 +76,7 @@ namespace BrickEngine.Gui
 
         public void Update()
         {
-            _resized = false;
             _snapshot = _window.PumpEvents();
-        }
-
-        public void Resize()
-        {
-            if (Resized)
-            {
-                _sc.Resize((uint)_window.Width, (uint)_window.Height);
-            }
         }
 
         public void Dispose()

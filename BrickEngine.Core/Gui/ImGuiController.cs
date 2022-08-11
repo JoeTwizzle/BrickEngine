@@ -4,16 +4,13 @@ using System.Numerics;
 using System.Reflection;
 using System.IO;
 using Veldrid;
-using Veldrid.SPIRV;
 using System.Runtime.CompilerServices;
-using ImGuizmoNET;
-using ImPlotNET;
 using ImGuiNET;
 using Veldrid.Sdl2;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Buffers;
-using BrickEngine.Core;
+using ImPlotNET;
+using ImGuizmoNET;
+using Veldrid.SPIRV;
 
 namespace BrickEngine.Gui
 {
@@ -40,7 +37,6 @@ namespace BrickEngine.Gui
         private Pipeline _pipeline;
         private ResourceSet _mainResourceSet;
         private ResourceSet _fontTextureResourceSet;
-        private Queue<VeldridImGuiWindow> WindowsToDispose;
 
         private IntPtr _fontAtlasID = (IntPtr)1;
         private bool _controlDown;
@@ -76,16 +72,13 @@ namespace BrickEngine.Gui
         /// <summary>
         /// Constructs a new ImGuiController.
         /// </summary>
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public unsafe ImGuiController(GraphicsDevice device, Sdl2Window window)
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public unsafe ImGuiController(GraphicsDevice gd, Sdl2Window window, OutputDescription outputDescription, int width, int height)
         {
-            _gd = device;
+            _gd = gd;
             _window = window;
-            _windowWidth = _window.Width;
-            _windowHeight = _window.Height;
+            _windowWidth = width;
+            _windowHeight = height;
 
-            WindowsToDispose = new Queue<VeldridImGuiWindow>();
             IntPtr context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
             IntPtr implotContext = ImPlot.CreateContext();
@@ -94,10 +87,8 @@ namespace BrickEngine.Gui
             ImGuizmo.SetImGuiContext(context);
             ImGuiIOPtr io = ImGui.GetIO();
             io.Fonts.AddFontFromFileTTF("Roboto-Bold.ttf", 18);
-            //using var ttfStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("OpenSans-Bold.ttf");
-            //io.Fonts.AddFontFromFileTTF("OpenSans-Bold.ttf", 18);
-            io.ConfigFlags |= ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable;
-
+            io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
             ImGui.StyleColorsDark();
             var style = ImGui.GetStyle();
             style.WindowRounding = 0.0f;
@@ -115,11 +106,11 @@ namespace BrickEngine.Gui
             style.Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.2f, 0.205f, 0.21f, 1.0f);
             style.Colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.3f, 0.305f, 0.31f, 1.0f);
             style.Colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.15f, 0.1505f, 0.151f, 1.0f);
-
             ImGuiPlatformIOPtr platformIO = ImGui.GetPlatformIO();
+
             ImGuiViewportPtr mainViewport = platformIO.Viewports[0];
-            mainViewport.PlatformHandle = _window.Handle;
-            _mainViewportWindow = new VeldridImGuiWindow(_gd, mainViewport, _window);
+            mainViewport.PlatformHandle = window.Handle;
+            _mainViewportWindow = new VeldridImGuiWindow(gd, mainViewport, _window);
 
             _createWindow = CreateWindow;
             _destroyWindow = DestroyWindow;
@@ -154,18 +145,21 @@ namespace BrickEngine.Gui
             io.BackendFlags |= ImGuiBackendFlags.HasSetMousePos;
             io.BackendFlags |= ImGuiBackendFlags.PlatformHasViewports;
             io.BackendFlags |= ImGuiBackendFlags.RendererHasViewports;
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
-            io.Fonts.AddFontDefault();
+            var fonts = ImGui.GetIO().Fonts;
+            fonts.AddFontDefault();
 
-            CreateDeviceResources(_gd, _gd.MainSwapchain!.Framebuffer.OutputDescription);
-            SetKeyMappings();
-
-            SetPerFrameImGuiData(1f / 60f);
-            UpdateMonitors();
+            CreateDeviceResources(gd, outputDescription);
+            //SetKeyMappings();
             if (File.Exists("imguiSettings.ini"))
             {
                 ImGui.LoadIniSettingsFromDisk("imguiSettings.ini");
             }
+
+            SetPerFrameImGuiData(1f / 60f);
+            UpdateMonitors();
+
             ImGui.NewFrame();
             _frameBegun = true;
         }
@@ -180,7 +174,7 @@ namespace BrickEngine.Gui
             if (vp.PlatformUserData != IntPtr.Zero)
             {
                 VeldridImGuiWindow window = (VeldridImGuiWindow)GCHandle.FromIntPtr(vp.PlatformUserData).Target!;
-                WindowsToDispose.Enqueue(window);
+                window.Dispose();
 
                 vp.PlatformUserData = IntPtr.Zero;
             }
@@ -219,16 +213,16 @@ namespace BrickEngine.Gui
         }
 
         private delegate void SDL_RaiseWindow_t(IntPtr sdl2Window);
-        private static SDL_RaiseWindow_t p_sdl_RaiseWindow = null!;
+        private static SDL_RaiseWindow_t? p_sdl_RaiseWindow;
 
         private unsafe delegate uint SDL_GetGlobalMouseState_t(int* x, int* y);
-        private static SDL_GetGlobalMouseState_t p_sdl_GetGlobalMouseState = null!;
+        private static SDL_GetGlobalMouseState_t? p_sdl_GetGlobalMouseState;
 
         private unsafe delegate int SDL_GetDisplayUsableBounds_t(int displayIndex, Rectangle* rect);
-        private static SDL_GetDisplayUsableBounds_t p_sdl_GetDisplayUsableBounds_t = null!;
+        private static SDL_GetDisplayUsableBounds_t? p_sdl_GetDisplayUsableBounds_t;
 
         private delegate int SDL_GetNumVideoDisplays_t();
-        private static SDL_GetNumVideoDisplays_t p_sdl_GetNumVideoDisplays = null!;
+        private static SDL_GetNumVideoDisplays_t? p_sdl_GetNumVideoDisplays;
 
         private void SetWindowFocus(ImGuiViewportPtr vp)
         {
@@ -262,7 +256,7 @@ namespace BrickEngine.Gui
             int count = 0;
             while (titlePtr[count] != 0)
             {
-                titlePtr += 1;
+                count += 1;
             }
             window.Window.Title = System.Text.Encoding.ASCII.GetString(titlePtr, count);
         }
@@ -282,49 +276,49 @@ namespace BrickEngine.Gui
         {
             _gd = gd;
             ResourceFactory factory = gd.ResourceFactory;
-            _vertexBuffer = factory.CreateBuffer(new BufferDescription(10000, BufferUsage.VertexBuffer | BufferUsage.DynamicWrite | BufferUsage.DynamicRead));
+            _vertexBuffer = factory.CreateBuffer(new BufferDescription(10000, BufferUsage.VertexBuffer | BufferUsage.DynamicReadWrite));
             _vertexBuffer.Name = "ImGui.NET Vertex Buffer";
-            _indexBuffer = factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.DynamicWrite | BufferUsage.DynamicRead));
+            _indexBuffer = factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.DynamicReadWrite));
             _indexBuffer.Name = "ImGui.NET Index Buffer";
             RecreateFontDeviceTexture(gd);
 
-            _projMatrixBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.DynamicWrite | BufferUsage.DynamicRead));
+            _projMatrixBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.DynamicReadWrite));
             _projMatrixBuffer.Name = "ImGui.NET Projection Buffer";
             const string frag = @"#version 450
 
-layout(set = 1, binding = 0) uniform texture2D FontTexture;
-layout(set = 0, binding = 1) uniform sampler FontSampler;
-
-layout (location = 0) in vec4 color;
-layout (location = 1) in vec2 texCoord;
-layout (location = 0) out vec4 outputColor;
-
-void main()
-{
-    outputColor = color * texture(sampler2D(FontTexture, FontSampler), texCoord);
-}";
+            layout(set = 1, binding = 0) uniform texture2D FontTexture;
+            layout(set = 0, binding = 1) uniform sampler FontSampler;
+            
+            layout (location = 0) in vec4 color;
+            layout (location = 1) in vec2 texCoord;
+            layout (location = 0) out vec4 outputColor;
+            
+            void main()
+            {
+                outputColor = color * texture(sampler2D(FontTexture, FontSampler), texCoord);
+            }";
 
             const string vert = @"#version 450
 
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_texCoord;
-layout (location = 2) in vec4 in_color;
+            layout (location = 0) in vec2 in_position;
+            layout (location = 1) in vec2 in_texCoord;
+            layout (location = 2) in vec4 in_color;
 
-layout (binding = 0) uniform ProjectionMatrixBuffer
-{
-    mat4 projection_matrix;
-};
+            layout (binding = 0) uniform ProjectionMatrixBuffer
+            {
+                mat4 projection_matrix;
+            };
 
-layout (location = 0) out vec4 color;
-layout (location = 1) out vec2 texCoord;
+            layout (location = 0) out vec4 color;
+            layout (location = 1) out vec2 texCoord;
 
-void main() 
-{
-    gl_Position = projection_matrix * vec4(in_position, 0, 1);
-    color = in_color;
-    texCoord = in_texCoord;
-}
-";
+            void main() 
+            {
+                gl_Position = projection_matrix * vec4(in_position, 0, 1);
+                color = in_color;
+                texCoord = in_texCoord;
+            }
+            ";
             byte[] vertexShaderBytes = SpirvCompilation.CompileGlslToSpirv(vert, "imgui-vertex", ShaderStages.Vertex, GlslCompileOptions.Default).SpirvBytes;
             byte[] fragmentShaderBytes = SpirvCompilation.CompileGlslToSpirv(frag, "imgui-frag", ShaderStages.Fragment, GlslCompileOptions.Default).SpirvBytes;
             _vertexShader = factory.CreateShader(new ShaderDescription(ShaderStages.Vertex, vertexShaderBytes, gd.BackendType == GraphicsBackend.Metal ? "VS" : "main"));
@@ -370,7 +364,7 @@ void main()
         {
             if (!_setsByView.TryGetValue(textureView, out ResourceSetInfo rsi))
             {
-                ResourceSet resourceSet = factory.CreateResourceSet(new ResourceSetDescription(_layout, textureView));
+                ResourceSet resourceSet = factory.CreateResourceSet(new ResourceSetDescription(_textureLayout, textureView));
                 rsi = new ResourceSetInfo(GetNextImGuiBindingID(), resourceSet);
 
                 _setsByView.Add(textureView, rsi);
@@ -393,9 +387,7 @@ void main()
         /// </summary>
         public IntPtr GetOrCreateImGuiBinding(ResourceFactory factory, Texture texture)
         {
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-            if (!_autoViewsByTexture.TryGetValue(texture, out TextureView textureView))
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+            if (!_autoViewsByTexture.TryGetValue(texture, out TextureView? textureView))
             {
                 textureView = factory.CreateTextureView(texture);
                 _autoViewsByTexture.Add(texture, textureView);
@@ -430,6 +422,46 @@ void main()
             _viewsById.Clear();
             _autoViewsByTexture.Clear();
             _lastAssignedID = 100;
+        }
+
+        private byte[] LoadEmbeddedShaderCode(ResourceFactory factory, string name, ShaderStages stage)
+        {
+            switch (factory.BackendType)
+            {
+                case GraphicsBackend.Direct3D11:
+                    {
+                        string resourceName = name + ".hlsl.bytes";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
+                case GraphicsBackend.OpenGL:
+                    {
+                        string resourceName = name + ".glsl";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
+                case GraphicsBackend.Vulkan:
+                    {
+                        string resourceName = name + ".spv";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
+                case GraphicsBackend.Metal:
+                    {
+                        string resourceName = name + ".metallib";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private byte[] GetEmbeddedResourceBytes(string resourceName)
+        {
+            Assembly assembly = typeof(ImGuiController).Assembly;
+            using (Stream s = assembly.GetManifestResourceStream(resourceName)!)
+            {
+                byte[] ret = new byte[s.Length];
+                s.Read(ret, 0, (int)s.Length);
+                return ret;
+            }
         }
 
         /// <summary>
@@ -493,11 +525,8 @@ void main()
                     {
                         ImGuiViewportPtr vp = platformIO.Viewports[i];
                         VeldridImGuiWindow window = (VeldridImGuiWindow)GCHandle.FromIntPtr(vp.PlatformUserData).Target!;
-                        if (!window.Resized)
-                        {
-                            cl.SetFramebuffer(window.Swapchain.Framebuffer);
-                            RenderImDrawData(vp.DrawData, gd, cl);
-                        }
+                        cl.SetFramebuffer(window.Swapchain.Framebuffer);
+                        RenderImDrawData(vp.DrawData, gd, cl);
                     }
                 }
             }
@@ -510,33 +539,22 @@ void main()
             {
                 ImGuiViewportPtr vp = platformIO.Viewports[i];
                 VeldridImGuiWindow window = (VeldridImGuiWindow)GCHandle.FromIntPtr(vp.PlatformUserData).Target!;
-                if (!window.Resized)
-                {
-                    gd.SwapBuffers(window.Swapchain);
-                }
-                else
-                {
-                    window.Resize();
-                }
+                gd.SwapBuffers(window.Swapchain);
             }
         }
+
         /// <summary>
         /// Updates ImGui input and IO configuration state.
         /// </summary>
-        public void Update(Game game, InputSnapshot snapshot)
+        public void Update(float deltaSeconds, InputSnapshot snapshot)
         {
-            while (WindowsToDispose.TryDequeue(out var window))
-            {
-                _gd.WaitForIdle();
-                window.Dispose();
-            }
             if (_frameBegun)
             {
                 ImGui.Render();
                 ImGui.UpdatePlatformWindows();
             }
 
-            SetPerFrameImGuiData(game.DeltaTime);
+            SetPerFrameImGuiData(deltaSeconds);
             ImGuiPlatformIOPtr platformIO = ImGui.GetPlatformIO();
             ImVector<ImGuiViewportPtr> viewports = platformIO.Viewports;
             for (int i = 1; i < viewports.Size; i++)
@@ -562,13 +580,16 @@ void main()
             }
             if (snapshot != null)
             {
-                game.Input.UpdateFrameInput(snapshot, game.Window);
                 UpdateImGuiInput(snapshot);
             }
             UpdateMonitors();
 
             _frameBegun = true;
             ImGui.NewFrame();
+
+            //ImGui.Text($"Main viewport Position: {ImGui.GetPlatformIO().Viewports[0].Pos}");
+            //ImGui.Text($"Main viewport Size: {ImGui.GetPlatformIO().Viewports[0].Size}");
+            //ImGui.Text($"MoouseHoveredViewport: {ImGui.GetIO().MouseHoveredViewport}");
         }
 
         private unsafe void UpdateMonitors()
@@ -617,42 +638,126 @@ void main()
             ImGui.GetPlatformIO().Viewports[0].Size = new Vector2(_window.Width, _window.Height);
         }
 
+        static ImGuiKey KeycodeToImGuiKey(VKey keycode)
+        {
+            switch (keycode)
+            {
+                case VKey.Tab: return ImGuiKey.Tab;
+                case VKey.Left: return ImGuiKey.LeftArrow;
+                case VKey.Right: return ImGuiKey.RightArrow;
+                case VKey.Up: return ImGuiKey.UpArrow;
+                case VKey.Down: return ImGuiKey.DownArrow;
+                case VKey.PageUp: return ImGuiKey.PageUp;
+                case VKey.PageDown: return ImGuiKey.PageDown;
+                case VKey.Home: return ImGuiKey.Home;
+                case VKey.End: return ImGuiKey.End;
+                case VKey.Insert: return ImGuiKey.Insert;
+                case VKey.Delete: return ImGuiKey.Delete;
+                case VKey.Backspace: return ImGuiKey.Backspace;
+                case VKey.Space: return ImGuiKey.Space;
+                case VKey.Return: return ImGuiKey.Enter;
+                case VKey.Escape: return ImGuiKey.Escape;
+                case VKey.Quote: return ImGuiKey.Apostrophe;
+                case VKey.Comma: return ImGuiKey.Comma;
+                case VKey.Minus: return ImGuiKey.Minus;
+                case VKey.Period: return ImGuiKey.Period;
+                case VKey.Slash: return ImGuiKey.Slash;
+                case VKey.Semicolon: return ImGuiKey.Semicolon;
+                case VKey.Equals: return ImGuiKey.Equal;
+                case VKey.LeftBracket: return ImGuiKey.LeftBracket;
+                case VKey.Backslash: return ImGuiKey.Backslash;
+                case VKey.RightBracket: return ImGuiKey.RightBracket;
+                case VKey.Backquote: return ImGuiKey.GraveAccent;
+                case VKey.CapsLock: return ImGuiKey.CapsLock;
+                case VKey.ScrollLock: return ImGuiKey.ScrollLock;
+                case VKey.NumLockClear: return ImGuiKey.NumLock;
+                case VKey.PrintScreen: return ImGuiKey.PrintScreen;
+                case VKey.Pause: return ImGuiKey.Pause;
+                case VKey.Keypad0: return ImGuiKey.Keypad0;
+                case VKey.Keypad1: return ImGuiKey.Keypad1;
+                case VKey.Keypad2: return ImGuiKey.Keypad2;
+                case VKey.Keypad3: return ImGuiKey.Keypad3;
+                case VKey.Keypad4: return ImGuiKey.Keypad4;
+                case VKey.Keypad5: return ImGuiKey.Keypad5;
+                case VKey.Keypad6: return ImGuiKey.Keypad6;
+                case VKey.Keypad7: return ImGuiKey.Keypad7;
+                case VKey.Keypad8: return ImGuiKey.Keypad8;
+                case VKey.Keypad9: return ImGuiKey.Keypad9;
+                case VKey.KeypadPeriod: return ImGuiKey.KeypadDecimal;
+                case VKey.KeypadDivide: return ImGuiKey.KeypadDivide;
+                case VKey.KeypadMultiply: return ImGuiKey.KeypadMultiply;
+                case VKey.KeypadMinus: return ImGuiKey.KeypadSubtract;
+                case VKey.KeypadPlus: return ImGuiKey.KeypadAdd;
+                case VKey.KeypadEnter: return ImGuiKey.KeypadEnter;
+                case VKey.KeypadEquals: return ImGuiKey.KeypadEqual;
+                case VKey.LeftControl: return ImGuiKey.LeftCtrl;
+                case VKey.LeftShift: return ImGuiKey.LeftShift;
+                case VKey.LeftAlt: return ImGuiKey.LeftAlt;
+                case VKey.LeftGui: return ImGuiKey.LeftSuper;
+                case VKey.RightControl: return ImGuiKey.RightCtrl;
+                case VKey.RightShift: return ImGuiKey.RightShift;
+                case VKey.RightAlt: return ImGuiKey.RightAlt;
+                case VKey.RightGui: return ImGuiKey.RightSuper;
+                case VKey.Application: return ImGuiKey.Menu;
+                case VKey.Num0: return ImGuiKey._0;
+                case VKey.Num1: return ImGuiKey._1;
+                case VKey.Num2: return ImGuiKey._2;
+                case VKey.Num3: return ImGuiKey._3;
+                case VKey.Num4: return ImGuiKey._4;
+                case VKey.Num5: return ImGuiKey._5;
+                case VKey.Num6: return ImGuiKey._6;
+                case VKey.Num7: return ImGuiKey._7;
+                case VKey.Num8: return ImGuiKey._8;
+                case VKey.Num9: return ImGuiKey._9;
+                case VKey.a: return ImGuiKey.A;
+                case VKey.b: return ImGuiKey.B;
+                case VKey.c: return ImGuiKey.C;
+                case VKey.d: return ImGuiKey.D;
+                case VKey.e: return ImGuiKey.E;
+                case VKey.f: return ImGuiKey.F;
+                case VKey.g: return ImGuiKey.G;
+                case VKey.h: return ImGuiKey.H;
+                case VKey.i: return ImGuiKey.I;
+                case VKey.j: return ImGuiKey.J;
+                case VKey.k: return ImGuiKey.K;
+                case VKey.l: return ImGuiKey.L;
+                case VKey.m: return ImGuiKey.M;
+                case VKey.n: return ImGuiKey.N;
+                case VKey.o: return ImGuiKey.O;
+                case VKey.p: return ImGuiKey.P;
+                case VKey.q: return ImGuiKey.Q;
+                case VKey.r: return ImGuiKey.R;
+                case VKey.s: return ImGuiKey.S;
+                case VKey.t: return ImGuiKey.T;
+                case VKey.u: return ImGuiKey.U;
+                case VKey.v: return ImGuiKey.V;
+                case VKey.w: return ImGuiKey.W;
+                case VKey.x: return ImGuiKey.X;
+                case VKey.y: return ImGuiKey.Y;
+                case VKey.z: return ImGuiKey.Z;
+                case VKey.F1: return ImGuiKey.F1;
+                case VKey.F2: return ImGuiKey.F2;
+                case VKey.F3: return ImGuiKey.F3;
+                case VKey.F4: return ImGuiKey.F4;
+                case VKey.F5: return ImGuiKey.F5;
+                case VKey.F6: return ImGuiKey.F6;
+                case VKey.F7: return ImGuiKey.F7;
+                case VKey.F8: return ImGuiKey.F8;
+                case VKey.F9: return ImGuiKey.F9;
+                case VKey.F10: return ImGuiKey.F10;
+                case VKey.F11: return ImGuiKey.F11;
+                case VKey.F12: return ImGuiKey.F12;
+            }
+            return ImGuiKey.None;
+        }
+
         private void UpdateImGuiInput(InputSnapshot snapshot)
         {
-            if (snapshot == null)
-            {
-                return;
-            }
             ImGuiIOPtr io = ImGui.GetIO();
 
             Vector2 mousePosition = snapshot.MousePosition;
 
             // Determine if any of the mouse buttons were pressed during this snapshot period, even if they are no longer held.
-            //bool leftPressed = false;
-            //bool middlePressed = false;
-            //bool rightPressed = false;
-            //foreach (MouseButtonEvent me in snapshot.MouseEvents)
-            //{
-            //    if (me.Down)
-            //    {
-            //        switch (me.MouseButton)
-            //        {
-            //            case MouseButton.Left:
-            //                leftPressed = true;
-            //                break;
-            //            case MouseButton.Middle:
-            //                middlePressed = true;
-            //                break;
-            //            case MouseButton.Right:
-            //                rightPressed = true;
-            //                break;
-            //        }
-            //    }
-            //}
-
-            //io.MouseDown[0] = leftPressed || snapshot.MouseDown.HasFlag(MouseButton.Left);
-            //io.MouseDown[1] = rightPressed || snapshot.MouseDown.HasFlag(MouseButton.Right);
-            //io.MouseDown[2] = middlePressed || snapshot.MouseDown.HasFlag(MouseButton.Middle);
 
             if (p_sdl_GetGlobalMouseState == null)
             {
@@ -663,10 +768,14 @@ void main()
             unsafe
             {
                 uint buttons = p_sdl_GetGlobalMouseState(&x, &y);
-                io.MouseDown[0] = (buttons & 0b0001) != 0;
-                io.MouseDown[1] = (buttons & 0b0100) != 0;
-                io.MouseDown[2] = (buttons & 0b0010) != 0;
+
+                io.MouseDown[0] = (buttons & 0b00001) != 0;//left
+                io.MouseDown[1] = (buttons & 0b00100) != 0;//right
+                io.MouseDown[2] = (buttons & 0b00010) != 0;//middle
+                io.MouseDown[3] = (buttons & 0b01000) != 0;//back
+                io.MouseDown[4] = (buttons & 0b10000) != 0;//forward
             }
+
 
             io.MousePos = new Vector2(x, y);
             io.MouseWheel = snapshot.WheelDelta.Y;
@@ -682,7 +791,7 @@ void main()
             for (int i = 0; i < keyEvents.Length; i++)
             {
                 KeyEvent keyEvent = keyEvents[i];
-                io.KeysDown[(int)keyEvent.Physical] = keyEvent.Down;
+                io.AddKeyEvent(KeycodeToImGuiKey(keyEvent.Virtual), keyEvent.Down);
                 if (keyEvent.Physical == Key.LeftControl)
                 {
                     _controlDown = keyEvent.Down;
@@ -700,37 +809,22 @@ void main()
                     _winKeyDown = keyEvent.Down;
                 }
             }
-
+            io.KeyMods = _controlDown ? ImGuiKeyModFlags.Ctrl : ImGuiKeyModFlags.None;
             io.KeyCtrl = _controlDown;
+            io.KeyMods |= _altDown ? ImGuiKeyModFlags.Alt : ImGuiKeyModFlags.None;
             io.KeyAlt = _altDown;
+            io.KeyMods |= _shiftDown ? ImGuiKeyModFlags.Shift : ImGuiKeyModFlags.None;
             io.KeyShift = _shiftDown;
+            io.KeyMods |= _winKeyDown ? ImGuiKeyModFlags.Super : ImGuiKeyModFlags.None;
             io.KeySuper = _winKeyDown;
-        }
 
-        private static void SetKeyMappings()
-        {
-            ImGuiIOPtr io = ImGui.GetIO();
-            io.KeyMap[(int)ImGuiKey.Tab] = (int)Key.Tab;
-            io.KeyMap[(int)ImGuiKey.LeftArrow] = (int)Key.Left;
-            io.KeyMap[(int)ImGuiKey.RightArrow] = (int)Key.Right;
-            io.KeyMap[(int)ImGuiKey.UpArrow] = (int)Key.Up;
-            io.KeyMap[(int)ImGuiKey.DownArrow] = (int)Key.Down;
-            io.KeyMap[(int)ImGuiKey.PageUp] = (int)Key.PageUp;
-            io.KeyMap[(int)ImGuiKey.PageDown] = (int)Key.PageDown;
-            io.KeyMap[(int)ImGuiKey.Home] = (int)Key.Home;
-            io.KeyMap[(int)ImGuiKey.End] = (int)Key.End;
-            io.KeyMap[(int)ImGuiKey.Delete] = (int)Key.Delete;
-            io.KeyMap[(int)ImGuiKey.Backspace] = (int)Key.Backspace;
-            io.KeyMap[(int)ImGuiKey.Enter] = (int)Key.Return;
-            io.KeyMap[(int)ImGuiKey.Escape] = (int)Key.Escape;
-            io.KeyMap[(int)ImGuiKey.Space] = (int)Key.Space;
-            io.KeyMap[(int)ImGuiKey.A] = (int)Key.A;
-            io.KeyMap[(int)ImGuiKey.C] = (int)Key.C;
-            io.KeyMap[(int)ImGuiKey.V] = (int)Key.V;
-            io.KeyMap[(int)ImGuiKey.X] = (int)Key.X;
-            io.KeyMap[(int)ImGuiKey.Y] = (int)Key.Y;
-            io.KeyMap[(int)ImGuiKey.Z] = (int)Key.Z;
-            io.KeyMap[(int)ImGuiKey.Space] = (int)Key.Space;
+            //ImVector<ImGuiViewportPtr> viewports = ImGui.GetPlatformIO().Viewports;
+            //for (int i = 1; i < viewports.Size; i++)
+            //{
+            //    ImGuiViewportPtr v = viewports[i];
+            //    VeldridImGuiWindow window = ((VeldridImGuiWindow)GCHandle.FromIntPtr(v.PlatformUserData).Target!);
+            //    window.Update();
+            //}
         }
 
         private void RenderImDrawData(ImDrawDataPtr draw_data, GraphicsDevice gd, CommandList cl)
@@ -743,30 +837,20 @@ void main()
                 return;
             }
 
-            bool sizeChanged = false;
             uint totalVBSize = (uint)(draw_data.TotalVtxCount * Unsafe.SizeOf<ImDrawVert>());
             if (totalVBSize > _vertexBuffer.SizeInBytes)
             {
-#pragma warning disable CS0618 // Type or member is obsolete
                 gd.DisposeWhenIdle(_vertexBuffer);
-#pragma warning restore CS0618 // Type or member is obsolete
                 _vertexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalVBSize * 1.5f), BufferUsage.VertexBuffer | BufferUsage.DynamicReadWrite));
-                sizeChanged = true;
             }
 
             uint totalIBSize = (uint)(draw_data.TotalIdxCount * sizeof(ushort));
             if (totalIBSize > _indexBuffer.SizeInBytes)
             {
-#pragma warning disable CS0618 // Type or member is obsolete
                 gd.DisposeWhenIdle(_indexBuffer);
-#pragma warning restore CS0618 // Type or member is obsolete
                 _indexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalIBSize * 1.5f), BufferUsage.IndexBuffer | BufferUsage.DynamicReadWrite));
-                sizeChanged = true;
             }
-            if (sizeChanged)
-            {
-                gd.WaitForIdle();
-            }
+
             Vector2 pos = draw_data.DisplayPos;
             for (int i = 0; i < draw_data.CmdListsCount; i++)
             {
@@ -841,12 +925,11 @@ void main()
                             (uint)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
                             (uint)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
 
-                        cl.DrawIndexed(pcmd.ElemCount, 1, (uint)idx_offset, vtx_offset, 0);
+                        cl.DrawIndexed(pcmd.ElemCount, 1, pcmd.IdxOffset + (uint)idx_offset, (int)pcmd.VtxOffset + vtx_offset, 0);
                     }
-
-                    idx_offset += (int)pcmd.ElemCount;
                 }
                 vtx_offset += cmd_list.VtxBuffer.Size;
+                idx_offset += cmd_list.IdxBuffer.Size;
             }
         }
 
@@ -860,8 +943,10 @@ void main()
             _projMatrixBuffer.Dispose();
             _fontTexture.Dispose();
             _fontTextureView.Dispose();
-            _fragmentShader.Dispose();
             _vertexShader.Dispose();
+            _fragmentShader.Dispose();
+            _layout.Dispose();
+            _textureLayout.Dispose();
             _pipeline.Dispose();
             _mainResourceSet.Dispose();
 
@@ -869,8 +954,6 @@ void main()
             {
                 resource.Dispose();
             }
-
-            ImGui.SaveIniSettingsToDisk("imguiSettings.ini");
         }
 
         private struct ResourceSetInfo

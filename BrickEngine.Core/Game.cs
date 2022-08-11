@@ -40,6 +40,7 @@ namespace BrickEngine.Core
         public event Action OnRegisterWorlds;
         public event Action OnPreUpdate;
         public event Action OnPostUpdate;
+        public event Action OnPostSwap;
         public event Action OnDisposeGame;
         public IReadOnlyList<ViewportRegion> ViewportRegions => _viewportRegions;
         public IReadOnlyDictionary<EcsWorld, string> AllWorldsReverse => _allWorldsReverse;
@@ -50,6 +51,7 @@ namespace BrickEngine.Core
         protected abstract void Init();
         protected abstract void PreUpdate();
         protected abstract void PostUpdate();
+        protected abstract void PostSwap();
         protected abstract void DisposeGame();
         /// <summary>
         /// This is where you Initialize your default world
@@ -224,7 +226,7 @@ namespace BrickEngine.Core
                 {
                     if (Window.WindowState != WindowState.Minimized)
                     {
-                        GraphicsDevice.ResizeMainWindow((uint)Clamp(Window.Width), (uint)Clamp(Window.Height));
+                        GraphicsDevice.MainSwapchain!.Resize((uint)Clamp(Window.Width), (uint)Clamp(Window.Height));
                         OnResized?.Invoke();
                     }
                     ResizedThisFrame = false;
@@ -237,6 +239,8 @@ namespace BrickEngine.Core
                 if (Window.WindowState != WindowState.Minimized)
                 {
                     GraphicsDevice.SwapBuffers();
+                    PostSwap();
+                    OnPostSwap?.Invoke();
                 }
                 double current = _stopwatch.Elapsed.TotalSeconds;
                 DeltaTimeFull = current - prev;
@@ -249,7 +253,7 @@ namespace BrickEngine.Core
             OnDisposeGame?.Invoke();
         }
 
-#region Graphics
+        #region Graphics
         public void DisposeWhenUnused<T>(T disposable) where T : IDisposable, DeviceResource
         {
             Debug.WriteLine("Defering disposal of object: " + disposable.GetType() + " Name: " + disposable.Name);
@@ -266,6 +270,6 @@ namespace BrickEngine.Core
             GraphicsDevice.SubmitCommands(commandList, fence);
             autoDisposer.AddFence(fence);
         }
-#endregion
+        #endregion
     }
 }

@@ -19,11 +19,13 @@ namespace BrickEngine.Editor
         public readonly Game Game;
         public readonly WindowManager WindowManager;
         public readonly MessageBus EditorMsgBus;
+        public readonly ActionManager ActionManager;
         private int selectedEntityCount = 0;
         public IReadOnlyDictionary<EcsWorld, List<EcsLocalEntity>> SelectedEntites => _selectedEntites;
         public int SelectedEntityCount => selectedEntityCount;
         public EditorManager(Game game)
         {
+            ActionManager = new ActionManager();
             EditorMsgBus = new MessageBus();
             _selectedEntites = new Dictionary<EcsWorld, List<EcsLocalEntity>>();
             _injected = new Dictionary<string, object>();
@@ -136,9 +138,20 @@ namespace BrickEngine.Editor
             {
                 pool.Value.RemoveMessages(MessageId);
             }
+            if (ImGui.GetIO().KeyMods.HasFlag(ImGuiKeyModFlags.Ctrl))
+            {
+                if (ImGui.IsKeyPressed(ImGuiKey.Z, true))
+                {
+                    ActionManager.Undo();
+                }
+                else if (ImGui.IsKeyPressed(ImGuiKey.Y, true))
+                {
+                    ActionManager.Redo();
+                }
+            }
             ImGui.DockSpaceOverViewport();
             WindowManager.UpdateWindows();
-            //DrawDockSpaceBG();
+
             var size = ImGui.GetWindowSize();
             float menuBarHeight = 0;
             if (ImGui.BeginMainMenuBar())
@@ -150,29 +163,6 @@ namespace BrickEngine.Editor
                 }
             }
             ImGui.EndMainMenuBar();
-            //uint dockspace_id = ImGui.GetID("Dockspace");
-            //ImGui.DockSpace(dockspace_id, new Vector2(size.X, size.Y - menuBarHeight));
-        }
-
-        void DrawDockSpaceBG()
-        {
-            var viewport = ImGui.GetMainViewport();
-
-            ImGui.SetNextWindowPos(viewport.Pos);
-            ImGui.SetNextWindowSize(viewport.Size);
-            ImGui.SetNextWindowViewport(viewport.ID);
-
-            ImGuiWindowFlags host_window_flags = 0;
-            host_window_flags |= ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.DockNodeHost;
-            host_window_flags |= ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus;
-
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0.0f);
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0.0f, 0.0f));
-            ImGui.Begin("MainWindow", host_window_flags);
-            ImGui.PopStyleVar(3);
-
-            ImGui.End();
         }
 
         void DrawMenu(string key, Tree<int>.TreeNode baseNode)

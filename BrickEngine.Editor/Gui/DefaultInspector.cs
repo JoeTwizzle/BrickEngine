@@ -13,11 +13,14 @@ using System.Threading.Tasks;
 
 namespace BrickEngine.Editor.Gui
 {
+    [Flags]
     public enum EditResult
     {
-        Unchanged,
-        Changed,
-        Removed,
+        Unchanged = 0,
+        Changed = 1,
+        Removed = 2,
+        EditStart = 4,
+        EditEnd = 8,
     }
     public static class DefaultInspector
     {
@@ -65,13 +68,14 @@ namespace BrickEngine.Editor.Gui
                 };
             }
         }
+        const int maxStack = 512;
 
         public static void PurgeCache()
         {
             fieldCache.Clear();
         }
 
-        private static FieldInfo[] GetTypeCache(Type t)
+        public static FieldInfo[] GetTypeCache(Type t)
         {
             if (!fieldCache.TryGetValue(t, out var fieldsCached))
             {
@@ -93,20 +97,14 @@ namespace BrickEngine.Editor.Gui
             }
             return fieldsCached;
         }
-
-        public static EditResult DrawComponents(Span<object> components)
+        public static EditResult DrawComponents(Span<object> components, out FieldInfo? activefield)
         {
+            activefield = null;
             if (components.Length <= 0)
             {
                 return EditResult.Unchanged;
             }
             var t = components[0].GetType();
-            var fieldsCached = GetTypeCache(t);
-            bool anyChanged = false;
-            if (fieldsCached.Length <= 0)
-            {
-                return EditResult.Unchanged;
-            }
             bool open = ImGui.CollapsingHeader(t.Name, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow);
             if (ImGui.BeginPopupContextItem(t.Name, ImGuiPopupFlags.MouseButtonRight))
             {
@@ -117,27 +115,48 @@ namespace BrickEngine.Editor.Gui
                 }
                 ImGui.EndPopup();
             }
+            var fieldsCached = GetTypeCache(t);
+            if (fieldsCached.Length <= 0)
+            {
+                return EditResult.Unchanged;
+            }
+            EditResult result = EditResult.Unchanged;
             if (open)
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0f);
-                foreach (var field in fieldsCached)
+                for (int i = 0; i < fieldsCached.Length; i++)
                 {
+                    var field = fieldsCached[i];
                     Type nonGenericType = field.FieldType.IsGenericType ? field.FieldType.GetGenericTypeDefinition() : field.FieldType;
                     if (typeRenderers.TryGetValue(nonGenericType, out var funcIndex))
                     {
                         unsafe
                         {
-                            anyChanged |= functions[funcIndex](field, components);
+                            result |= functions[funcIndex](field, components) ? EditResult.Changed : EditResult.Unchanged;
+                        }
+                        if (ImGui.IsItemActivated())
+                        {
+                            activefield = field;
+                            result |= EditResult.EditStart;
+                        }
+                        if (ImGui.IsItemActive())
+                        {
+                            activefield = field;
+                        }
+                        if (ImGui.IsItemDeactivatedAfterEdit())
+                        {
+                            activefield = field;
+                            result |= EditResult.EditEnd;
                         }
                     }
                     else
                     {
-                        //ImGui.TextUnformatted(field.Name);
+                        ImGui.TextUnformatted("TODO: " + field.Name);
                     }
                 }
                 ImGui.PopStyleVar();
             }
-            return anyChanged ? EditResult.Changed : EditResult.Unchanged;
+            return result;
         }
 
         public static bool DrawText(FieldInfo field, Span<object> components)
@@ -149,7 +168,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             var multiline = field.GetCustomAttribute(typeof(MultilineAttribute), false) != null;
-            uint length = field.GetCustomAttribute<TextLengthAttribute>()?.Length ?? 1024;
+            uint length = field.GetCustomAttribute<TextLengthAttribute>()?.Length ?? maxStack;
             bool dirty;
             if (multiline)
             {
@@ -173,7 +192,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawInt(FieldInfo field, Span<object> components)
         {
-            var data = ((sizeof(int) * components.Length) < 1024) ? stackalloc int[components.Length] : new int[components.Length];
+            var data = ((sizeof(int) * components.Length) < maxStack) ? stackalloc int[components.Length] : new int[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (int)field.GetValue(components[i])!;
@@ -186,7 +205,7 @@ namespace BrickEngine.Editor.Gui
                 if (dragAttribute != null)
                 {
                     var speed = dragAttribute.Speed;
-
+                    ImGui.IsItemDeactivatedAfterEdit();
                     dirty = ImHelper.MultiDragInt(field.Name, data, speed, (int)rangeAttribute.Min, (int)rangeAttribute.Max);
                 }
                 else
@@ -221,7 +240,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawInt2(FieldInfo field, Span<object> components)
         {
-            var data = ((Unsafe.SizeOf<Vector2i>() * components.Length) < 1024) ? stackalloc Vector2i[components.Length] : new Vector2i[components.Length];
+            var data = ((Unsafe.SizeOf<Vector2i>() * components.Length) < maxStack) ? stackalloc Vector2i[components.Length] : new Vector2i[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (Vector2i)field.GetValue(components[i])!;
@@ -269,7 +288,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawInt3(FieldInfo field, Span<object> components)
         {
-            var data = ((Unsafe.SizeOf<Vector3i>() * components.Length) < 1024) ? stackalloc Vector3i[components.Length] : new Vector3i[components.Length];
+            var data = ((Unsafe.SizeOf<Vector3i>() * components.Length) < maxStack) ? stackalloc Vector3i[components.Length] : new Vector3i[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (Vector3i)field.GetValue(components[i])!;
@@ -316,7 +335,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawInt4(FieldInfo field, Span<object> components)
         {
-            var data = ((Unsafe.SizeOf<Vector4i>() * components.Length) < 1024) ? stackalloc Vector4i[components.Length] : new Vector4i[components.Length];
+            var data = ((Unsafe.SizeOf<Vector4i>() * components.Length) < maxStack) ? stackalloc Vector4i[components.Length] : new Vector4i[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (Vector4i)field.GetValue(components[i])!;
@@ -364,7 +383,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawFloat(FieldInfo field, Span<object> components)
         {
-            var data = ((sizeof(float) * components.Length) < 1024) ? stackalloc float[components.Length] : new float[components.Length];
+            var data = ((sizeof(float) * components.Length) < maxStack) ? stackalloc float[components.Length] : new float[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (float)field.GetValue(components[i])!;
@@ -412,7 +431,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawFloat2(FieldInfo field, Span<object> components)
         {
-            var data = ((Unsafe.SizeOf<Vector2>() * components.Length) < 1024) ? stackalloc Vector2[components.Length] : new Vector2[components.Length];
+            var data = ((Unsafe.SizeOf<Vector2>() * components.Length) < maxStack) ? stackalloc Vector2[components.Length] : new Vector2[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (Vector2)field.GetValue(components[i])!;
@@ -461,7 +480,7 @@ namespace BrickEngine.Editor.Gui
         public static bool DrawFloat3(FieldInfo field, Span<object> components)
         {
             var pos = ImGui.GetCursorPos();
-            var data = ((Unsafe.SizeOf<Vector3>() * components.Length) < 1024) ? stackalloc Vector3[components.Length] : new Vector3[components.Length];
+            var data = ((Unsafe.SizeOf<Vector3>() * components.Length) < maxStack) ? stackalloc Vector3[components.Length] : new Vector3[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (Vector3)field.GetValue(components[i])!;
@@ -524,7 +543,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawFloat4(FieldInfo field, Span<object> components)
         {
-            var data = ((Unsafe.SizeOf<Vector4>() * components.Length) < 1024) ? stackalloc Vector4[components.Length] : new Vector4[components.Length];
+            var data = ((Unsafe.SizeOf<Vector4>() * components.Length) < maxStack) ? stackalloc Vector4[components.Length] : new Vector4[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (Vector4)field.GetValue(components[i])!;
@@ -585,7 +604,7 @@ namespace BrickEngine.Editor.Gui
         }
         public static bool DrawQuaternion(FieldInfo field, Span<object> components)
         {
-            var data = ((Unsafe.SizeOf<Vector4>() * components.Length) < 1024) ? stackalloc Vector4[components.Length] : new Vector4[components.Length];
+            var data = ((Unsafe.SizeOf<Vector4>() * components.Length) < maxStack) ? stackalloc Vector4[components.Length] : new Vector4[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 var quat = (Quaternion)field.GetValue(components[i])!;
@@ -635,7 +654,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawDouble(FieldInfo field, Span<object> components)
         {
-            var data = ((sizeof(double) * components.Length) < 1024) ? stackalloc double[components.Length] : new double[components.Length];
+            var data = ((sizeof(double) * components.Length) < maxStack) ? stackalloc double[components.Length] : new double[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (double)field.GetValue(components[i])!;
@@ -653,7 +672,7 @@ namespace BrickEngine.Editor.Gui
 
         public static bool DrawBool(FieldInfo field, Span<object> components)
         {
-            var data = ((sizeof(bool) * components.Length) < 1024) ? stackalloc bool[components.Length] : new bool[components.Length];
+            var data = ((sizeof(bool) * components.Length) < maxStack) ? stackalloc bool[components.Length] : new bool[components.Length];
             for (int i = 0; i < components.Length; i++)
             {
                 data[i] = (bool)field.GetValue(components[i])!;
