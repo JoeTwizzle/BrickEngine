@@ -110,7 +110,7 @@ namespace BrickEngine.Gui
 
             ImGuiViewportPtr mainViewport = platformIO.Viewports[0];
             mainViewport.PlatformHandle = window.Handle;
-            _mainViewportWindow = new VeldridImGuiWindow(gd, mainViewport, _window);
+            _mainViewportWindow = new VeldridImGuiWindow(this, gd, mainViewport, _window);
 
             _createWindow = CreateWindow;
             _destroyWindow = DestroyWindow;
@@ -166,7 +166,7 @@ namespace BrickEngine.Gui
 
         private void CreateWindow(ImGuiViewportPtr vp)
         {
-            VeldridImGuiWindow window = new VeldridImGuiWindow(_gd, vp);
+            VeldridImGuiWindow window = new VeldridImGuiWindow(this, _gd, vp);
         }
 
         private void DestroyWindow(ImGuiViewportPtr vp)
@@ -546,7 +546,7 @@ namespace BrickEngine.Gui
         /// <summary>
         /// Updates ImGui input and IO configuration state.
         /// </summary>
-        public void Update(float deltaSeconds, InputSnapshot snapshot)
+        public void Update(float deltaSeconds)
         {
             if (_frameBegun)
             {
@@ -563,25 +563,9 @@ namespace BrickEngine.Gui
                 VeldridImGuiWindow window = (VeldridImGuiWindow)GCHandle.FromIntPtr(v.PlatformUserData).Target!;
                 window.Update();
             }
-            if (!_mainViewportWindow.Window.Focused)
-            {
-                snapshot = null!;
-                for (int i = 1; i < platformIO.Viewports.Size; i++)
-                {
 
-                    ImGuiViewportPtr vp = platformIO.Viewports[i];
-                    VeldridImGuiWindow window = (VeldridImGuiWindow)GCHandle.FromIntPtr(vp.PlatformUserData).Target!;
-                    if (window.Window.Focused)
-                    {
-                        snapshot = window.InputSnapshot;
-                        break;
-                    }
-                }
-            }
-            if (snapshot != null)
-            {
-                UpdateImGuiInput(snapshot);
-            }
+
+            UpdateMouse();
             UpdateMonitors();
 
             _frameBegun = true;
@@ -751,12 +735,9 @@ namespace BrickEngine.Gui
             return ImGuiKey.None;
         }
 
-        private void UpdateImGuiInput(InputSnapshot snapshot)
+        private void UpdateMouse()
         {
             ImGuiIOPtr io = ImGui.GetIO();
-
-            Vector2 mousePosition = snapshot.MousePosition;
-
             // Determine if any of the mouse buttons were pressed during this snapshot period, even if they are no longer held.
 
             if (p_sdl_GetGlobalMouseState == null)
@@ -775,39 +756,28 @@ namespace BrickEngine.Gui
                 io.MouseDown[3] = (buttons & 0b01000) != 0;//back
                 io.MouseDown[4] = (buttons & 0b10000) != 0;//forward
             }
-
-
             io.MousePos = new Vector2(x, y);
-            io.MouseWheel = snapshot.WheelDelta.Y;
+        }
 
-            var keyCharPresses = snapshot.InputEvents;
-            for (int i = 0; i < keyCharPresses.Length; i++)
+        public void UpdateKeys(KeyEvent keyEvent)
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+            io.AddKeyEvent(KeycodeToImGuiKey(keyEvent.Virtual), keyEvent.Down);
+            if (keyEvent.Physical == Key.LeftControl || keyEvent.Physical == Key.RightControl)
             {
-                uint c = (uint)keyCharPresses[i].Value;
-                io.AddInputCharacter(c);
+                _controlDown = keyEvent.Down;
             }
-
-            var keyEvents = snapshot.KeyEvents;
-            for (int i = 0; i < keyEvents.Length; i++)
+            if (keyEvent.Physical == Key.LeftShift || keyEvent.Physical == Key.RightShift)
             {
-                KeyEvent keyEvent = keyEvents[i];
-                io.AddKeyEvent(KeycodeToImGuiKey(keyEvent.Virtual), keyEvent.Down);
-                if (keyEvent.Physical == Key.LeftControl)
-                {
-                    _controlDown = keyEvent.Down;
-                }
-                if (keyEvent.Physical == Key.LeftShift)
-                {
-                    _shiftDown = keyEvent.Down;
-                }
-                if (keyEvent.Physical == Key.LeftAlt)
-                {
-                    _altDown = keyEvent.Down;
-                }
-                if (keyEvent.Physical == Key.LeftGui || keyEvent.Physical == Key.RightGui)
-                {
-                    _winKeyDown = keyEvent.Down;
-                }
+                _shiftDown = keyEvent.Down;
+            }
+            if (keyEvent.Physical == Key.LeftAlt || keyEvent.Physical == Key.RightAlt)
+            {
+                _altDown = keyEvent.Down;
+            }
+            if (keyEvent.Physical == Key.LeftGui || keyEvent.Physical == Key.RightGui)
+            {
+                _winKeyDown = keyEvent.Down;
             }
             io.KeyMods = _controlDown ? ImGuiKeyModFlags.Ctrl : ImGuiKeyModFlags.None;
             io.KeyCtrl = _controlDown;
@@ -817,14 +787,22 @@ namespace BrickEngine.Gui
             io.KeyShift = _shiftDown;
             io.KeyMods |= _winKeyDown ? ImGuiKeyModFlags.Super : ImGuiKeyModFlags.None;
             io.KeySuper = _winKeyDown;
+        }
 
-            //ImVector<ImGuiViewportPtr> viewports = ImGui.GetPlatformIO().Viewports;
-            //for (int i = 1; i < viewports.Size; i++)
-            //{
-            //    ImGuiViewportPtr v = viewports[i];
-            //    VeldridImGuiWindow window = ((VeldridImGuiWindow)GCHandle.FromIntPtr(v.PlatformUserData).Target!);
-            //    window.Update();
-            //}
+        public void UpdateMouseWheel(MouseWheelEvent wheelEvent)
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+            io.AddMouseWheelEvent(wheelEvent.WheelDelta.X, wheelEvent.WheelDelta.Y);
+        }
+
+        public void UpdateText(TextInputEvent textInputEvent)
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+            for (int i = 0; i < textInputEvent.Runes.Length; i++)
+            {
+                uint c = (uint)textInputEvent.Runes[i].Value;
+                io.AddInputCharacter(c);
+            }
         }
 
         private void RenderImDrawData(ImDrawDataPtr draw_data, GraphicsDevice gd, CommandList cl)
@@ -838,6 +816,7 @@ namespace BrickEngine.Gui
             }
 
             uint totalVBSize = (uint)(draw_data.TotalVtxCount * Unsafe.SizeOf<ImDrawVert>());
+#pragma warning disable CS0618 // Type or member is obsolete
             if (totalVBSize > _vertexBuffer.SizeInBytes)
             {
                 gd.DisposeWhenIdle(_vertexBuffer);
@@ -850,6 +829,7 @@ namespace BrickEngine.Gui
                 gd.DisposeWhenIdle(_indexBuffer);
                 _indexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalIBSize * 1.5f), BufferUsage.IndexBuffer | BufferUsage.DynamicReadWrite));
             }
+#pragma warning restore CS0618 // Type or member is obsolete
 
             Vector2 pos = draw_data.DisplayPos;
             for (int i = 0; i < draw_data.CmdListsCount; i++)

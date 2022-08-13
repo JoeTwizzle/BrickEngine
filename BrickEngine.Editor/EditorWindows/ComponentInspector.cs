@@ -80,7 +80,9 @@ namespace BrickEngine.Editor.EditorWindows
                     string worldName = EditorManager.Game.AllWorldsReverse[world];
                     ImGui.PushID(worldName);
                     ImGui.Separator();
+                    ImGui.Spacing();
                     ImGui.TextUnformatted(worldName);
+                    ImGui.Separator();
                     foreach (var type in types)
                     {
                         var pool = world.GetPoolByType(type);
@@ -141,7 +143,6 @@ namespace BrickEngine.Editor.EditorWindows
                 {
                     selEntities.Add(worldList.Key, worldList.Value.ToArray());
                 }
-                Console.WriteLine("Pew");
                 EditorManager.ActionManager.Execute(new ComponentFieldChangedCommand(selEntities, componentType, activeField, oldVals, activeField.GetValue(results[0])!));
             }
             if (result.HasFlag(EditResult.Removed))

@@ -22,7 +22,7 @@ namespace BrickEngine.Gui
         public Swapchain Swapchain => _sc;
         public InputSnapshot InputSnapshot => _snapshot;
         public bool Resized => _resized;
-        public VeldridImGuiWindow(GraphicsDevice gd, ImGuiViewportPtr vp)
+        public VeldridImGuiWindow(ImGuiController controller, GraphicsDevice gd, ImGuiViewportPtr vp)
         {
             _gcHandle = GCHandle.Alloc(this);
             _gd = gd;
@@ -53,10 +53,13 @@ namespace BrickEngine.Gui
                 (int)vp.Size.X, (int)vp.Size.Y,
                 flags,
                 false);
+            _window.TextInput += controller.UpdateText;
+            _window.MouseWheel += controller.UpdateMouseWheel;
             _window.Resized += () => _vp.PlatformRequestResize = true;
             _window.Moved += p => _vp.PlatformRequestMove = true;
             _window.Closed += () => _vp.PlatformRequestClose = true;
-
+            _window.KeyDown += controller.UpdateKeys;
+            _window.KeyUp += controller.UpdateKeys;
             SwapchainSource scSource = VeldridStartup.GetSwapchainSource(_window);
             SwapchainDescription scDesc = new SwapchainDescription(scSource, (uint)_window.Width, (uint)_window.Height, null, true, false);
             _sc = _gd.ResourceFactory.CreateSwapchain(scDesc);
@@ -65,12 +68,16 @@ namespace BrickEngine.Gui
             vp.PlatformUserData = (IntPtr)_gcHandle;
         }
 
-        public VeldridImGuiWindow(GraphicsDevice gd, ImGuiViewportPtr vp, Sdl2Window window)
+        public VeldridImGuiWindow(ImGuiController controller, GraphicsDevice gd, ImGuiViewportPtr vp, Sdl2Window window)
         {
             _gcHandle = GCHandle.Alloc(this);
             _gd = gd;
             _vp = vp;
             _window = window;
+            _window.TextInput += controller.UpdateText;
+            _window.MouseWheel += controller.UpdateMouseWheel;
+            _window.KeyDown += controller.UpdateKeys;
+            _window.KeyUp += controller.UpdateKeys;
             vp.PlatformUserData = (IntPtr)_gcHandle;
         }
 

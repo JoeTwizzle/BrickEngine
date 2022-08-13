@@ -48,6 +48,7 @@ namespace BrickEngine.Core
         public IReadOnlyDictionary<string, EcsWorld> OtherWorlds => _otherWorlds;
         public ViewportRegion DefaultViewport => _viewportRegions[0];
         public static RenderDoc? RenderDoc => _renderDoc;
+        public GameState GameState { get; set; }
         protected abstract void Init();
         protected abstract void PreUpdate();
         protected abstract void PostUpdate();
@@ -193,9 +194,10 @@ namespace BrickEngine.Core
 
         private void Setup()
         {
+            GameState = GameState.Running;
             DefaultWorld = new EcsWorld();
-            _allWorldsReverse.Add(DefaultWorld, "Default");
-            _allWorlds.Add("Default", DefaultWorld);
+            _allWorldsReverse.Add(DefaultWorld, "Default World");
+            _allWorlds.Add("Default World", DefaultWorld);
             InitDefaultWorld(DefaultWorld);
             OnCreateDefaultWorld?.Invoke(DefaultWorld);
             var builder = new EcsSystemsBuilder(DefaultWorld);
@@ -222,6 +224,7 @@ namespace BrickEngine.Core
             {
                 double prev = _stopwatch.Elapsed.TotalSeconds;
                 InputSnapshot = Window.PumpEvents();
+                Input.UpdateFrameInput(InputSnapshot, Window);
                 if (ResizedThisFrame)
                 {
                     if (Window.WindowState != WindowState.Minimized)
@@ -233,7 +236,10 @@ namespace BrickEngine.Core
                 }
                 PreUpdate();
                 OnPreUpdate?.Invoke();
-                Systems.Run(DeltaTimeFull);
+                if (GameState == GameState.Running)
+                {
+                    Systems.Run(DeltaTimeFull);
+                }
                 PostUpdate();
                 OnPostUpdate?.Invoke();
                 if (Window.WindowState != WindowState.Minimized)

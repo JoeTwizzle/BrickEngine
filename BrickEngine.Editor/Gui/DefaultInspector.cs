@@ -130,24 +130,26 @@ namespace BrickEngine.Editor.Gui
                     Type nonGenericType = field.FieldType.IsGenericType ? field.FieldType.GetGenericTypeDefinition() : field.FieldType;
                     if (typeRenderers.TryGetValue(nonGenericType, out var funcIndex))
                     {
+                        EditResult currentResult;
                         unsafe
                         {
-                            result |= functions[funcIndex](field, components) ? EditResult.Changed : EditResult.Unchanged;
+                            currentResult = functions[funcIndex](field, components) ? EditResult.Changed : EditResult.Unchanged;
                         }
-                        if (ImGui.IsItemActivated())
+                        if ((nonGenericType == typeof(string) && currentResult.HasFlag(EditResult.Changed)) || ImGui.IsItemActivated())
                         {
                             activefield = field;
-                            result |= EditResult.EditStart;
+                            currentResult |= EditResult.EditStart;
                         }
                         if (ImGui.IsItemActive())
                         {
                             activefield = field;
                         }
-                        if (ImGui.IsItemDeactivatedAfterEdit())
+                        if ((nonGenericType == typeof(string) && currentResult.HasFlag(EditResult.Changed)) || ImGui.IsItemDeactivatedAfterEdit())
                         {
                             activefield = field;
-                            result |= EditResult.EditEnd;
+                            currentResult |= EditResult.EditEnd;
                         }
+                        result |= currentResult;
                     }
                     else
                     {
@@ -168,7 +170,7 @@ namespace BrickEngine.Editor.Gui
             }
 
             var multiline = field.GetCustomAttribute(typeof(MultilineAttribute), false) != null;
-            uint length = field.GetCustomAttribute<TextLengthAttribute>()?.Length ?? maxStack;
+            uint length = field.GetCustomAttribute<TextLengthAttribute>()?.Length ?? 1024;
             bool dirty;
             if (multiline)
             {
@@ -185,6 +187,10 @@ namespace BrickEngine.Editor.Gui
                 {
                     field.SetValue(components[i], data[i]);
                 }
+            }
+            if (dirty)
+            {
+
             }
             ArrayPool<string>.Shared.Return(data);
             return dirty;

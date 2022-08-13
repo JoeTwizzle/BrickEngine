@@ -14,10 +14,12 @@ namespace BrickEngine.Editor.EditorWindows
     {
         readonly Game _game;
         readonly string _title;
+        readonly MessagePool<SelectedEnititiesChanged> _entityChangedPool;
 
         public WorldInspector(EditorManager editorManager) : base(editorManager)
         {
             _title = $"EntityInspector##{Id}";
+            _entityChangedPool = editorManager.EditorMsgBus.GetPool<SelectedEnititiesChanged>();
             _game = EditorManager.GetSingleton<Game>();
         }
         EcsEntity[]? entities;
@@ -57,7 +59,7 @@ namespace BrickEngine.Editor.EditorWindows
         DelayedAdd delayedAdd;
         void DrawWorldEntities(EcsWorld world)
         {
-            if (ImGui.BeginPopupContextWindow(_title, ImGuiPopupFlags.MouseButtonRight))
+            if (ImGui.BeginPopupContextWindow($"{_title} Blank", ImGuiPopupFlags.MouseButtonRight))
             {
                 if (ImGui.MenuItem("New Entity"))
                 {
@@ -83,8 +85,24 @@ namespace BrickEngine.Editor.EditorWindows
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, GuiColors.SelectedBlue);
                 }
-
                 bool clicked = ImGui.Selectable($"ID: {entityId + 1}");
+                if (isSelected)
+                {
+                    ImGui.PopStyleColor();
+                }
+                if (ImGui.BeginPopupContextItem($"{_title} entity {entityId}", ImGuiPopupFlags.MouseButtonRight))
+                {
+                    if (ImGui.MenuItem("Delete"))
+                    {
+                        world.DelEntity(entityId);
+                        _entityChangedPool.Add(MessageId, new SelectedEnititiesChanged());
+                    }
+                    ImGui.EndPopup();
+                }
+                if (isSelected)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, GuiColors.SelectedBlue);
+                }
                 if (clicked)
                 {
                     prevSelectedEntity = selectedEntity;
@@ -120,7 +138,7 @@ namespace BrickEngine.Editor.EditorWindows
                             EditorManager.ActionManager.Execute(new SelectEntityCommand(false, EditorManager, entity));
                         }
                     }
-                    
+
                 }
                 if (isSelected)
                 {
@@ -129,7 +147,7 @@ namespace BrickEngine.Editor.EditorWindows
             }
             if (delayedAdd != default)
             {
-                var entts = new EcsEntity[(delayedAdd.SelectedEntityRange.End.Value+1) - delayedAdd.SelectedEntityRange.Start.Value];
+                var entts = new EcsEntity[(delayedAdd.SelectedEntityRange.End.Value + 1) - delayedAdd.SelectedEntityRange.Start.Value];
                 int idx = 0;
                 for (int i = 0; i < count; i++)
                 {

@@ -138,14 +138,17 @@ namespace BrickEngine.Editor
             {
                 pool.Value.RemoveMessages(MessageId);
             }
-            if (ImGui.GetIO().KeyMods.HasFlag(ImGuiKeyModFlags.Ctrl))
+            var io = ImGui.GetIO();
+            if (!io.WantCaptureKeyboard && io.KeyMods.HasFlag(ImGuiKeyModFlags.Ctrl))
             {
                 if (ImGui.IsKeyPressed(ImGuiKey.Z, true))
                 {
+                    Console.WriteLine("Ctrl+Z Pressed");
                     ActionManager.Undo();
                 }
                 else if (ImGui.IsKeyPressed(ImGuiKey.Y, true))
                 {
+                    Console.WriteLine("Ctrl+Y Pressed");
                     ActionManager.Redo();
                 }
             }

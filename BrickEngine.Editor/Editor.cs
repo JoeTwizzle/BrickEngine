@@ -67,7 +67,7 @@ namespace BrickEngine.Editor
 
         private void Game_OnPreUpdate()
         {
-            _imGuiController.Update(_game.DeltaTime, _game.InputSnapshot);
+            _imGuiController.Update(_game.DeltaTime);
         }
 
         private void Game_OnPostUpdate()
