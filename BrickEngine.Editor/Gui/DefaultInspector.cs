@@ -28,6 +28,8 @@ namespace BrickEngine.Editor.Gui
         static readonly Dictionary<Type, int> typeRenderers;
         private unsafe static readonly delegate*<FieldInfo, Span<object>, bool>[] functions;
         static readonly List<FieldInfo> filteredFields = new List<FieldInfo>();
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void igClearActiveID();
         static DefaultInspector()
         {
             typeRenderers = new Dictionary<Type, int>()
@@ -135,7 +137,7 @@ namespace BrickEngine.Editor.Gui
                         {
                             currentResult = functions[funcIndex](field, components) ? EditResult.Changed : EditResult.Unchanged;
                         }
-                        if ((nonGenericType == typeof(string) && currentResult.HasFlag(EditResult.Changed)) || ImGui.IsItemActivated())
+                        if (ImGui.IsItemActivated())
                         {
                             activefield = field;
                             currentResult |= EditResult.EditStart;
@@ -144,7 +146,7 @@ namespace BrickEngine.Editor.Gui
                         {
                             activefield = field;
                         }
-                        if ((nonGenericType == typeof(string) && currentResult.HasFlag(EditResult.Changed)) || ImGui.IsItemDeactivatedAfterEdit())
+                        if (ImGui.IsItemDeactivatedAfterEdit())
                         {
                             activefield = field;
                             currentResult |= EditResult.EditEnd;
@@ -175,6 +177,7 @@ namespace BrickEngine.Editor.Gui
             if (multiline)
             {
                 float spaceX = ImGui.GetContentRegionAvail().X;
+                
                 dirty = ImHelper.MultiInputTextMultiline(field.Name, data.AsSpan(0, components.Length), length, new Vector2(spaceX, 120));
             }
             else
@@ -183,14 +186,11 @@ namespace BrickEngine.Editor.Gui
             }
             if (dirty)
             {
+                Console.WriteLine("Dirty");
                 for (int i = 0; i < components.Length; i++)
                 {
                     field.SetValue(components[i], data[i]);
                 }
-            }
-            if (dirty)
-            {
-
             }
             ArrayPool<string>.Shared.Return(data);
             return dirty;

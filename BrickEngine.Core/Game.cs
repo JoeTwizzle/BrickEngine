@@ -230,6 +230,7 @@ namespace BrickEngine.Core
                     if (Window.WindowState != WindowState.Minimized)
                     {
                         GraphicsDevice.MainSwapchain!.Resize((uint)Clamp(Window.Width), (uint)Clamp(Window.Height));
+                        GraphicsDevice.WaitForIdle();
                         OnResized?.Invoke();
                     }
                     ResizedThisFrame = false;
@@ -242,11 +243,12 @@ namespace BrickEngine.Core
                 }
                 PostUpdate();
                 OnPostUpdate?.Invoke();
-                if (Window.WindowState != WindowState.Minimized)
+                if (true)
                 {
                     GraphicsDevice.SwapBuffers();
                     PostSwap();
                     OnPostSwap?.Invoke();
+                    autoDisposer.EndFrame();
                 }
                 double current = _stopwatch.Elapsed.TotalSeconds;
                 DeltaTimeFull = current - prev;

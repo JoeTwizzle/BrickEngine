@@ -13,6 +13,9 @@ namespace BrickEngine.Editor
     }
     public class ActionManager
     {
+        public event Action? OnExecute;
+        public event Action? OnUndo;
+        public event Action? OnRedo;
         private readonly Stack<ICommand> actionStack = new Stack<ICommand>();
         private readonly Stack<ICommand> undoStack = new Stack<ICommand>();
 
@@ -22,6 +25,7 @@ namespace BrickEngine.Editor
             undoStack.Clear();
             command.Execute();
             actionStack.Push(command);
+            OnExecute?.Invoke();
         }
 
         public bool Undo()
@@ -31,6 +35,7 @@ namespace BrickEngine.Editor
             Console.WriteLine($"Undid command {cmd.GetType().Name}");
             cmd.Undo();
             undoStack.Push(cmd);
+            OnUndo?.Invoke();
             return true;
         }
 
@@ -41,6 +46,7 @@ namespace BrickEngine.Editor
             Console.WriteLine($"Redid command {cmd.GetType().Name}");
             cmd.Execute();
             actionStack.Push(cmd);
+            OnRedo?.Invoke();
             return true;
         }
     }

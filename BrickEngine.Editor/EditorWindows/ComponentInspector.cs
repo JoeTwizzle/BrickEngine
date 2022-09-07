@@ -4,6 +4,7 @@ using BrickEngine.Editor.Messages;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -35,6 +36,18 @@ namespace BrickEngine.Editor.EditorWindows
             _title = $"Component Inspector##{Id}";
             _allowedTypeNames = Array.Empty<string>();
             _allAllowedTypes = Array.Empty<Type>();
+            editorManager.ActionManager.OnUndo += ActionManager_OnUndo;
+            editorManager.ActionManager.OnRedo += ActionManager_OnRedo;
+        }
+        bool ignoreNextResult;
+        private void ActionManager_OnRedo()
+        {
+            ignoreNextResult = true;
+        }
+
+        private void ActionManager_OnUndo()
+        {
+            ignoreNextResult = true;
         }
 
         protected override void OnOpen()
@@ -86,21 +99,33 @@ namespace BrickEngine.Editor.EditorWindows
                     foreach (var type in types)
                     {
                         var pool = world.GetPoolByType(type);
-                        if (pool == null)
+                        var entities = worldList.Value;
+                        if (entities.Count <= 0 || pool == null)
                         {
                             continue;
                         }
-                        var entities = worldList.Value;
                         var array = ArrayPool<object>.Shared.Rent(entities.Count);
+                        int id = -1;
                         for (int i = 0; i < entities.Count; i++)
                         {
-                            worldList.Value[i].TryUnpack(worldList.Key, out int entity);
+                            Debug.Assert(worldList.Value[i].TryUnpack(worldList.Key, out int entity));
                             array[i] = pool.GetRaw(entity);
+                            id = HashCode.Combine(id, entity);
                         }
+
                         //Todo: set some changed flag!
                         var span = array.AsSpan().Slice(0, entities.Count);
+                        ImGui.PushID(id);
                         var result = DefaultInspector.DrawComponents(span, out var activeField);
-                        EvalResult(result, type, activeField, span);
+                        ImGui.PopID();
+                        if (ignoreNextResult)
+                        {
+                            ignoreNextResult = false;
+                        }
+                        else
+                        {
+                            EvalResult(result, type, activeField, span);
+                        }
                         ArrayPool<object>.Shared.Return(array);
                         ImGui.Spacing();
                     }
@@ -144,6 +169,7 @@ namespace BrickEngine.Editor.EditorWindows
                     selEntities.Add(worldList.Key, worldList.Value.ToArray());
                 }
                 EditorManager.ActionManager.Execute(new ComponentFieldChangedCommand(selEntities, componentType, activeField, oldVals, activeField.GetValue(results[0])!));
+                oldVals = null;
             }
             if (result.HasFlag(EditResult.Removed))
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using BrickEngine.Core.Mathematics;
 
@@ -14,7 +15,7 @@ namespace BrickEngine.Editor.Gui
         #region DragInt
         public static bool MultiDragInt(string label, Span<int> vals, float speed, int minVal = int.MinValue, int maxVal = int.MaxValue)
         {
-            
+
             if (vals.Length <= 0)
             {
                 return false;
@@ -37,7 +38,7 @@ namespace BrickEngine.Editor.Gui
             if (widthPerColumn < 1 || (xSpace * StartPercentage) < 1) return false;
             ImGui.BeginGroup();
             ImGui.Columns(dims + 1, $" ##{label}Columns", false);
-            
+
             ImGui.SetColumnWidth(0, xSpace * StartPercentage);
             ImGui.SetColumnWidth(1, widthPerColumn);
             ImGui.Text(label);
@@ -2164,9 +2165,16 @@ namespace BrickEngine.Editor.Gui
 
             if (diffX)
             {
+
                 ImGui.PushStyleColor(ImGuiCol.Text, DifferentColor);
             }
-            bool xChanged = ImGui.InputText($" ##{label}X", ref x, maxLength, flags);
+
+
+            bool xChanged;
+            unsafe
+            {
+                xChanged = ImGui.InputText($" ##{label}X", ref x, maxLength, flags);
+            }
             if (diffX)
             {
                 ImGui.PopStyleColor();

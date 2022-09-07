@@ -19,6 +19,7 @@ namespace BrickEngine.Editor
         public Vector3 Position;
         public Vector4 Position4d;
         public Vector2i SpriteSize;
+        [NoDrag]
         public Vector3i BoundingBoxExtents;
         public Vector4i BoundingBox2d;
         [Range(0f, 1f)]
