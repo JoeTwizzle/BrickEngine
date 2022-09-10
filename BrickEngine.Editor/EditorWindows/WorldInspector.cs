@@ -18,7 +18,7 @@ namespace BrickEngine.Editor.EditorWindows
 
         public WorldInspector(EditorManager editorManager) : base(editorManager)
         {
-            _title = $"EntityInspector##{Id}";
+            _title = $"Entity Inspector##{Id}";
             _entityChangedPool = editorManager.EditorMsgBus.GetPool<SelectedEnititiesChanged>();
             _game = EditorManager.GetSingleton<Game>();
         }

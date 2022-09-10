@@ -17,7 +17,6 @@ namespace BrickEngine.Core.Mathematics
         public static Vector2 Xy(this Vector4 v)
         {
             return Unsafe.As<Vector4, Vector2>(ref v);
-
         }
 
         /// <summary>

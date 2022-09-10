@@ -36,18 +36,6 @@ namespace BrickEngine.Editor.EditorWindows
             _title = $"Component Inspector##{Id}";
             _allowedTypeNames = Array.Empty<string>();
             _allAllowedTypes = Array.Empty<Type>();
-            editorManager.ActionManager.OnUndo += ActionManager_OnUndo;
-            editorManager.ActionManager.OnRedo += ActionManager_OnRedo;
-        }
-        bool ignoreNextResult;
-        private void ActionManager_OnRedo()
-        {
-            ignoreNextResult = true;
-        }
-
-        private void ActionManager_OnUndo()
-        {
-            ignoreNextResult = true;
         }
 
         protected override void OnOpen()
@@ -106,26 +94,23 @@ namespace BrickEngine.Editor.EditorWindows
                         }
                         var array = ArrayPool<object>.Shared.Rent(entities.Count);
                         int id = -1;
+                        int gen = -1;
                         for (int i = 0; i < entities.Count; i++)
                         {
                             Debug.Assert(worldList.Value[i].TryUnpack(worldList.Key, out int entity));
                             array[i] = pool.GetRaw(entity);
                             id = HashCode.Combine(id, entity);
+                            gen = HashCode.Combine(gen, worldList.Value[i].GetGen());
                         }
 
                         //Todo: set some changed flag!
                         var span = array.AsSpan().Slice(0, entities.Count);
                         ImGui.PushID(id);
+                        ImGui.PushID(gen);
                         var result = DefaultInspector.DrawComponents(span, out var activeField);
                         ImGui.PopID();
-                        if (ignoreNextResult)
-                        {
-                            ignoreNextResult = false;
-                        }
-                        else
-                        {
-                            EvalResult(result, type, activeField, span);
-                        }
+                        ImGui.PopID();
+                        EvalResult(result, type, activeField, span);
                         ArrayPool<object>.Shared.Return(array);
                         ImGui.Spacing();
                     }

@@ -21,22 +21,25 @@ namespace BrickEngine.Editor
             namedWindows = new Dictionary<string, int>();
         }
 
-        public void AddWindow(WindowBase window, string name, string titleBarEntry)
+        public WindowBase AddWindow(WindowBase window, string name, string titleBarEntry)
         {
             windows.Add(window);
             namedWindows.Add(name, windows.Count - 1);
             titleBarWindows.AddNode(titleBarEntry, windows.Count - 1);
+            return window;
         }
 
-        public void AddWindow(WindowBase window, string name)
+        public WindowBase AddWindow(WindowBase window, string name)
         {
             windows.Add(window);
             namedWindows.Add(name, windows.Count - 1);
+            return window;
         }
 
-        public void AddWindow(WindowBase window)
+        public WindowBase AddWindow(WindowBase window)
         {
             windows.Add(window);
+            return window;
         }
 
         public int GetWindowIndex(string name)

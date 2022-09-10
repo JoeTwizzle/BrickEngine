@@ -119,7 +119,8 @@ namespace BrickEngine.Editor
         {
             WindowManager.AddWindow(new WorldInspector(this), "EntityInspector", "Entities");
             WindowManager.AddWindow(new ComponentInspector(this), "ComponentInspector", "Components");
-            WindowManager.AddWindow(new WorldInspector(this), "EntityInspector3", "Test/Test3");
+            WindowManager.AddWindow(new ProjectView(this), "ProjectView", "Project Files");
+            WindowManager.AddWindow(new EditorViewport(this), "EditorViewport", "Viewport");
         }
 
         public void Inject<T>(string identifier, T data) where T : notnull
