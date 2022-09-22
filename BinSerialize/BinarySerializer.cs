@@ -428,6 +428,24 @@ namespace BinSerialize
         }
 
         /// <summary>
+        /// Write a continuous block of bytes.
+        /// </summary>
+        /// <remarks>
+        /// Will consume as many bytes as are in the given block.
+        /// </remarks>
+        /// <param name="span">Span to write to.</param>
+        /// <param name="val">Block of bytes to write.</param>
+        public static int Write<T>(ref Span<byte> span, scoped ReadOnlySpan<T> val) where T : unmanaged
+        {
+            var data = MemoryMarshal.Cast<T, byte>(val);
+            data.CopyTo(span);
+
+            // 'Advance' the span.
+            span = span.Slice(data.Length);
+            return val.Length;
+        }
+
+        /// <summary>
         /// Check how many many bytes it will take to write the given string value.
         /// </summary>
         /// <remarks>
@@ -916,6 +934,29 @@ namespace BinSerialize
             span = span.Slice(size);
 
             return result;
+        }
+
+        /// <summary>
+        /// Read a unmanaged struct.
+        /// </summary>
+        /// <remarks>
+        /// When using this make sure that 'T' has a explict memory-layout so its consistent
+        /// accross platforms.
+        /// In other words, only use this if you are 100% sure its safe to do so.
+        /// </remarks>
+        /// <param name="span">Span to read from.</param>
+        /// <typeparam name="T">Type of the struct to read.</typeparam>
+        /// <returns>Read value.</returns>
+        public static void Read<T>(scoped Span<T> dest, int count, ref ReadOnlySpan<byte> span) where T : unmanaged
+        {
+            var actual = MemoryMarshal.Cast<byte, T>(span);
+            for (int i = 0; i < count; i++)
+            {
+                dest[i] = actual[i];
+            }
+            // 'Advance' the span.
+            var size = Unsafe.SizeOf<T>() * count;
+            span = span.Slice(size);
         }
 
         /// <summary>

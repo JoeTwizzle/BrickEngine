@@ -10,14 +10,13 @@ using System.Diagnostics;
 namespace BrickEngine.Assets
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct AssetHeader
+    public unsafe struct AssetHeader
     {
         public const uint Magic = 0xDECE75CD;
-        public readonly ulong GuidPart1;
-        public readonly ulong GuidPart2;
+        public fixed byte RawGuid[16];
         public readonly int RawBlobSize;
         public readonly int BlobBinarySize;
-        public readonly uint Version;
+        public readonly int Version;
         public readonly int AssetType;
         public readonly bool IsCompressed;
 
@@ -25,13 +24,15 @@ namespace BrickEngine.Assets
         {
             get
             {
-                return GuidExtensions.FromBytes(GuidPart1, GuidPart2);
+                return new Guid(MemoryMarshal.CreateReadOnlySpan(ref RawGuid[0], 16));
             }
         }
 
-        public AssetHeader(uint version, int assetType, bool isCompressed, int rawBlobSize, int blobBinarySize)
+        public AssetHeader(int version, int assetType, bool isCompressed, int rawBlobSize, int blobBinarySize)
         {
-            Guid.NewGuid().ToBytes(out GuidPart1, out GuidPart2);
+            Span<byte> guidSpan = stackalloc byte[16];
+            Debug.Assert(Guid.NewGuid().TryWriteBytes(guidSpan));
+            guidSpan.CopyTo(MemoryMarshal.CreateSpan(ref RawGuid[0], 16));
             Version = version;
             RawBlobSize = rawBlobSize;
             BlobBinarySize = blobBinarySize;
@@ -39,10 +40,11 @@ namespace BrickEngine.Assets
             IsCompressed = isCompressed;
         }
 
-        internal AssetHeader(in AssetReadHeader header)
+        internal AssetHeader(AssetReadHeader header)
         {
-            GuidPart1 = header.rawHeader.GuidPart1;
-            GuidPart2 = header.rawHeader.GuidPart2;
+            var src = MemoryMarshal.CreateReadOnlySpan(ref header.rawHeader.RawGuid[0], 16);
+            var dest = MemoryMarshal.CreateSpan(ref RawGuid[0], 16);
+            src.CopyTo(dest);
             Version = header.rawHeader.Version;
             RawBlobSize = header.rawHeader.RawBlobSize;
             BlobBinarySize = header.rawHeader.BlobBinarySize;
@@ -52,14 +54,14 @@ namespace BrickEngine.Assets
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    internal readonly struct AssetReadHeader
+    internal struct AssetReadHeader
     {
-        public readonly uint Magic;
-        public readonly AssetHeader rawHeader;
+        public uint Magic;
+        public AssetHeader rawHeader;
 
-        internal AssetReadHeader(in AssetHeader header)
+        internal AssetReadHeader(AssetHeader header)
         {
-            Magic = AssetHeader.Magic;
+            Magic = BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(AssetHeader.Magic) : AssetHeader.Magic;
             rawHeader = header;
         }
     }

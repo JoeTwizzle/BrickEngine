@@ -21,26 +21,52 @@ namespace BrickEngine.Importers
         RGB,
         RGBA
     }
+
+    public enum CompressionMode
+    {
+        None,
+        Low,
+        Medium,
+        High,
+    }
+
     public struct TextureImportSettings
     {
-        public static TextureImportSettings Default => new TextureImportSettings(TextureType.RGBA, true, true, true);
+        public static TextureImportSettings Default => new TextureImportSettings(TextureType.RGBA, CompressionMode.Medium, true, true);
         public TextureType TextureType;
-        public bool Compress;
+        public CompressionMode CompressionMode;
         public bool GenerateMipmaps;
         public bool IsSrgb;
 
-        public TextureImportSettings(TextureType textureType, bool compress, bool generateMipmaps, bool isSrgb)
+        public TextureImportSettings(TextureType textureType, CompressionMode compressionMode, bool generateMipmaps, bool isSrgb)
         {
-            IsSrgb = isSrgb;
             TextureType = textureType;
-            Compress = compress;
+            CompressionMode = compressionMode;
             GenerateMipmaps = generateMipmaps;
+            IsSrgb = isSrgb;
         }
     }
 
 
     public class TextureImporter
     {
+        public static Task<Asset> ImportAsync(string path, CancellationToken token)
+        {
+            using var fs = new FileStream(path, FileMode.Open);
+            return Task.Run(() => Import(fs, TextureImportSettings.Default), token);
+        }
+
+        public static Task<Asset> ImportAsync(string path, TextureImportSettings settings, CancellationToken token)
+        {
+            using var fs = new FileStream(path, FileMode.Open);
+            return Task.Run(() => Import(fs, settings), token);
+        }
+
+        public static Task<Asset> ImportAsync(Stream stream, TextureImportSettings settings, CancellationToken token)
+        {
+            return Task.Run(() => Import(stream, settings), token);
+        }
+
         public static Asset Import(string path)
         {
             using var fs = new FileStream(path, FileMode.Open);
@@ -63,11 +89,12 @@ namespace BrickEngine.Importers
             MipLevel[] mipLevels;
             bool isHdr = info.Value.BitsPerChannel > 8;
             uint vdPixelFormat = (uint)GetVdPixelFormat(isHdr, settings);
-            if (settings.Compress)
+            bool compress = settings.CompressionMode != CompressionMode.None;
+            if (compress)
             {
                 var encoder = new BcEncoder();
                 encoder.OutputOptions.MaxMipMapLevel = settings.GenerateMipmaps ? -1 : 1;
-                encoder.OutputOptions.Quality = CompressionQuality.BestQuality;
+                encoder.OutputOptions.Quality = CompressionQuality.Balanced;
                 CompressionFormat compressFormat;
                 if (isHdr)
                 {
@@ -78,7 +105,6 @@ namespace BrickEngine.Importers
                     };
                     encoder.OutputOptions.Format = compressFormat;
                     var res = ImageResultFloat.FromStream(stream);
-
                     //Dangerous and unsafe, Array.Length is no longer correct
                     var aata = Unsafe.As<ColorRgbFloat[]>(res.Data);
                     byte[][] data = encoder.EncodeToRawBytesHdr(new ReadOnlyMemory2D<ColorRgbFloat>(aata, res.Height, res.Width));
@@ -164,14 +190,15 @@ namespace BrickEngine.Importers
             }
             using ByteBufferWriter writer = new ByteBufferWriter();
             TextureData.Serialize(writer, new TextureData(vdPixelFormat, mipLevels));
-            return Asset.Create(AssetVersion.Create(1, 0, 0), typeof(TextureData).GetHashCode(), !settings.Compress, writer.WrittenSpan.ToArray());
+            return Asset.Create(AssetVersion.Create(1, 0, 0), typeof(TextureData).GetHashCode(), true, writer.WrittenSpan.ToArray());
         }
 
 
         static Veldrid.PixelFormat GetVdPixelFormat(bool isHdr, TextureImportSettings settings)
         {
             Veldrid.PixelFormat format = Veldrid.PixelFormat.R8_G8_B8_A8_UNorm;
-            if (settings.Compress)
+            bool compress = settings.CompressionMode != CompressionMode.None;
+            if (compress)
             {
                 if (isHdr)
                 {

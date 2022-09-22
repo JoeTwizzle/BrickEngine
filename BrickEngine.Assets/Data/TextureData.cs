@@ -43,7 +43,7 @@ namespace BrickEngine.Assets.Data
                 ref var level = ref Miplevels[i];
                 var Width = BinarySerializer.ReadPackedInt(ref blob);
                 var Height = BinarySerializer.ReadPackedInt(ref blob);
-                int dataLength = BinarySerializer.ReadPackedInt(ref blob);
+                int dataLength = (int)BinarySerializer.ReadUInt(ref blob);
                 var Data = BinarySerializer.ReadBlock(ref blob, dataLength);
                 level = new MipLevel(Width, Height, Data);
             }
@@ -59,11 +59,11 @@ namespace BrickEngine.Assets.Data
             for (int i = 0; i < data.Miplevels.Length; i++)
             {
                 ref var level = ref data.Miplevels[i];
-                int maxbufferLength = level.Data.Length + sizeof(int) * 3;
+                int maxbufferLength = level.Data.Length + sizeof(int) * 4;
                 Span<byte> mipSpan = writer.GetSpan(maxbufferLength);
                 BinarySerializer.WritePackedInt(ref mipSpan, level.Width);
                 BinarySerializer.WritePackedInt(ref mipSpan, level.Height);
-                BinarySerializer.WritePackedInt(ref mipSpan, level.Data.Length);
+                BinarySerializer.WriteUInt(ref mipSpan, (uint)level.Data.Length);
                 BinarySerializer.WriteBlock(ref mipSpan, level.Data);
                 writer.ReturnSpanAndAdvance(ref mipSpan);
             }

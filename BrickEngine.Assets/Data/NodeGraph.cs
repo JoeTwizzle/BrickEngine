@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BinSerialize;
 using System.Threading.Tasks;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Reflection.Metadata;
 
 namespace BrickEngine.Assets.Data
 {
@@ -13,12 +16,18 @@ namespace BrickEngine.Assets.Data
             public readonly string Name;
             public readonly int ParentIndex;
             public readonly int[] Children;
+            public readonly Matrix4x4 LocalToWorld;
+            public readonly Matrix4x4 GetWorldTransfrom(Node[] Nodes)
+            {
+                return Nodes[ParentIndex].GetWorldTransfrom(Nodes) * LocalToWorld;
+            }
 
-            public Node(string name, int parentIndex, int[] children)
+            public Node(string name, int parentIndex, int[] children, Matrix4x4 localToWorld)
             {
                 Name = name;
                 ParentIndex = parentIndex;
                 Children = children;
+                LocalToWorld = localToWorld;
             }
         }
 
@@ -36,18 +45,21 @@ namespace BrickEngine.Assets.Data
             {
                 string name = BinarySerializer.ReadString(ref blob);
                 int parent = BinarySerializer.ReadPackedInt(ref blob);
-                int childCount= BinarySerializer.ReadPackedInt(ref blob);
+                Matrix4x4 mat = default;
+                var destSpan = MemoryMarshal.CreateSpan(ref mat.M11, 4 * 4);
+                BinarySerializer.Read(destSpan, 4 * 4, ref blob);
+                int childCount = BinarySerializer.ReadPackedInt(ref blob);
                 int[] children = new int[childCount];
                 for (int j = 0; j < children.Length; j++)
                 {
                     children[j] = BinarySerializer.ReadPackedInt(ref blob);
                 }
-                nodes[i] = new Node(name, parent, children);
+                nodes[i] = new Node(name, parent, children, mat);
             }
             return new NodeGraph(nodes);
         }
 
-        public static void Serialize(ByteBufferWriter writer,NodeGraph data)
+        public static void Serialize(ByteBufferWriter writer, NodeGraph data)
         {
             int estimatedLength = sizeof(int);
             for (int i = 0; i < data.Nodes.Length; i++)
@@ -57,6 +69,8 @@ namespace BrickEngine.Assets.Data
                 estimatedLength += BinarySerializer.GetSizeForString(node.Name);
                 //ParentIndex
                 estimatedLength += sizeof(int);
+                //Matrix
+                estimatedLength += sizeof(float) * 4 * 4;
                 //ChildCount
                 estimatedLength += sizeof(int);
                 //ChildIndices
@@ -71,6 +85,9 @@ namespace BrickEngine.Assets.Data
                 ref var node = ref data.Nodes[i];
                 BinarySerializer.WriteString(ref span, node.Name);
                 BinarySerializer.WritePackedInt(ref span, node.ParentIndex);
+                Matrix4x4 mat = node.LocalToWorld;
+                var srcSpan = MemoryMarshal.CreateReadOnlySpan(ref mat.M11, 4 * 4);
+                BinarySerializer.Write(ref span, srcSpan);
                 BinarySerializer.WritePackedInt(ref span, node.Children.Length);
                 for (int j = 0; j < node.Children.Length; j++)
                 {

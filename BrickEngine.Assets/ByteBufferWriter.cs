@@ -66,10 +66,10 @@ namespace BrickEngine.Assets
             if (count < 0)
                 throw new ArgumentException(nameof(count));
 
-            if (_written > _rentedBuffer.Length - count)
+            if (_written + count > _rentedBuffer.Length)
                 throw new InvalidOperationException("Cannot advance past the end of the buffer.");
 
-            _written += count;
+            _written = checked(_written + count);
         }
 
         // Returns the rented buffer back to the pool
@@ -117,7 +117,10 @@ namespace BrickEngine.Assets
         public int GetWrittenLength(ref Span<byte> bytes)
         {
             CheckIfDisposed();
-            int length = bytes.Length - _rentedBuffer.Length;
+            int globalStart = _written;
+            int end = (_rentedBuffer.Length - bytes.Length);
+            int length = end - globalStart;
+            Debug.Assert(_written + length <= _rentedBuffer.Length);
             return length;
         }
 
@@ -152,7 +155,7 @@ namespace BrickEngine.Assets
                 byte[] oldBuffer = _rentedBuffer;
 
                 _rentedBuffer = ArrayPool<byte>.Shared.Rent(newSize);
-
+                Debug.Assert(_rentedBuffer.Length >= newSize);
                 Debug.Assert(oldBuffer.Length >= _written);
                 Debug.Assert(_rentedBuffer.Length >= _written);
 

@@ -32,7 +32,7 @@ namespace BrickEngine.Assets
             assetData.Blob.CopyTo(Blob, 0);
         }
 
-        public static Asset Create(uint version, int assetType, bool compress, byte[] uncompressedBlob)
+        public static Asset Create(int version, int assetType, bool compress, byte[] uncompressedBlob)
         {
             int size;
             byte[] data;
@@ -55,7 +55,7 @@ namespace BrickEngine.Assets
 
         private static readonly LZ4EncoderSettings settings = new LZ4EncoderSettings() { CompressionLevel = LZ4Level.L12_MAX };
 
-        public static Asset Create(uint version, int assetType, bool compress, Stream uncompressedBlob)
+        public static Asset Create(int version, int assetType, bool compress, Stream uncompressedBlob)
         {
             byte[] data;
             if (compress)
@@ -235,7 +235,7 @@ namespace BrickEngine.Assets
             var readHeader = new AssetReadHeader(assetData.Header);
             unsafe
             {
-                var smallBuffer = new Span<byte>(Unsafe.AsPointer(ref readHeader), Unsafe.SizeOf<AssetReadHeader>());
+                var smallBuffer = MemoryMarshal.Cast<AssetReadHeader, byte>(MemoryMarshal.CreateSpan(ref readHeader, 1));
                 stream.Write(smallBuffer);
             }
             stream.Write(assetData.Blob);
@@ -260,7 +260,7 @@ namespace BrickEngine.Assets
                 unsafe
                 {
                     var readHeader = new AssetReadHeader(assetData.Header);
-                    var smallBuffer = new Span<byte>(Unsafe.AsPointer(ref readHeader), length);
+                    var smallBuffer = MemoryMarshal.Cast<AssetReadHeader, byte>(MemoryMarshal.CreateSpan(ref readHeader, 1));
                     smallBuffer.CopyTo(headerBuffer);
                 }
             }

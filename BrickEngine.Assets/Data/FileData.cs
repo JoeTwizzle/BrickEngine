@@ -24,7 +24,7 @@ namespace BrickEngine.Assets.Data
 
         public static void Serialize(ByteBufferWriter writer, FileData data)
         {
-            var span = writer.GetSpan(sizeof(int) + data.Data.Length);
+            var span = writer.GetSpan(5 + data.Data.Length);
             BinarySerializer.WritePackedInt(ref span, data.Data.Length);
             BinarySerializer.WriteBlock(ref span, data.Data);
         }
