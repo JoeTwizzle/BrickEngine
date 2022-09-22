@@ -7,11 +7,14 @@ using System.Runtime.CompilerServices;
 using System.Numerics;
 using EcsLite.Messages;
 using BrickEngine.Editor.Messages;
+using System.Text.Json;
 
 namespace BrickEngine.Editor
 {
-    public class EditorManager
+    public class EditorManager : IDisposable
     {
+        const string statusFileName = "EditorStatus.cfg";
+        readonly JsonSerializerOptions options = new JsonSerializerOptions() { IncludeFields = true };
         private readonly Dictionary<Type, object> _injectedSingletons;
         private readonly Dictionary<string, object> _injected;
         private readonly Dictionary<EcsWorld, List<EcsLocalEntity>> _selectedEntites;
@@ -121,6 +124,15 @@ namespace BrickEngine.Editor
             WindowManager.AddWindow(new ComponentInspector(this), "ComponentInspector", "Components");
             WindowManager.AddWindow(new ProjectView(this), "ProjectView", "Project Files");
             WindowManager.AddWindow(new EditorViewport(this), "EditorViewport", "Viewport");
+            if (File.Exists(statusFileName))
+            {
+                using var fs = new FileStream(statusFileName, FileMode.Open);
+                var config = JsonSerializer.Deserialize<EditorConfig>(fs, options)!;
+                foreach (var item in config.WindowStates)
+                {
+                    WindowManager.GetWindow(item.Key).Enabled = item.Value;
+                }
+            }
         }
 
         public void Inject<T>(string identifier, T data) where T : notnull
@@ -189,6 +201,17 @@ namespace BrickEngine.Editor
                     ImGui.EndMenu();
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            EditorConfig cfg = new EditorConfig();
+            foreach (var item in WindowManager.NamedWindows)
+            {
+                cfg.WindowStates.Add(item.Key, WindowManager.GetWindow(item.Value).Enabled);
+            }
+            using var fs = new FileStream(statusFileName, FileMode.Create);
+            JsonSerializer.Serialize(fs, cfg, options);
         }
     }
 }

@@ -7,7 +7,7 @@ using BinSerialize;
 
 namespace BrickEngine.Importers
 {
-    public readonly struct AssetMetaData : ISerializable<AssetMetaData>
+    public class AssetMetaData : ISerializable<AssetMetaData>
     {
         /// <summary>
         /// The Guid of this AssetSource

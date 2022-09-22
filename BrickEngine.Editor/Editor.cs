@@ -35,6 +35,7 @@ namespace BrickEngine.Editor
 
         private void Game_OnDisposeGame()
         {
+            _editor.Dispose();
             _imGuiController.Dispose();
         }
 

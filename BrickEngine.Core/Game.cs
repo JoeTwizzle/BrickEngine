@@ -16,6 +16,7 @@ using BrickEngine.Core.Graphics;
 using ImGuiNET;
 using System.Diagnostics.CodeAnalysis;
 using BrickEngine.Core.Utilities;
+using System.IO.MemoryMappedFiles;
 
 namespace BrickEngine.Core
 {
