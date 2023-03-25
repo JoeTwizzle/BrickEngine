@@ -6,7 +6,7 @@ using BinSerialize;
 
 namespace BrickEngine.Assets.Data
 {
-    public class MaterialData : ISerializable<MaterialData>
+    public class MaterialData : IBinarySerializable<MaterialData>
     {
         public readonly Guid ColorTexture;
         public readonly Guid NormalTexture;

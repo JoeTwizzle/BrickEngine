@@ -1,0 +1,46 @@
+﻿
+Two types of serialization:
+	Json, Binary.
+
+Always store fields as key value pairs.
+
+Must be versionable.
+
+Refrences must be preserved, Inherritance must be preserved.
+
+As little Boxing of values as possible.
+
+Can specify own Serialization handler through static abstract interface SerializationHandler<T>
+
+
+Rules for Components:
+	By default serialize public fields without IgnoreFieldAttribute and fields with SerializeFieldAttribute.
+	
+Rules for all other types:
+	By default serialize public Properties and fields like Json Serialization.
+
+
+Class ItemSerializer Methods:
+	void Serialize(ReadOnlySpan<byte> Key, INumber<T> number)
+	INumber<T> Deserialize<T>(ReadOnlySpan<byte> Key)
+	//Vector
+	void Serialize(ReadOnlySpan<byte> Key, VectorN vec)
+	VectorN Deserialize<T>(ReadOnlySpan<byte> Key)
+
+	void SerializeBlob(ReadOnlySpan<byte> Key, ReadOnlySpan<byte> data)
+	Span<byte> DeserializeBlob<T>(ReadOnlySpan<byte> Key)
+
+Types to implement serializers for:
+	All integer number types 
+	Float number types
+	char type
+	All VectorN types
+	All VectorNI types
+	Guid
+	Strings
+	Arrays of value types
+	Arrays of refrence types
+	List<T>
+	Dictionary<TKey,TValue>
+	Hashset<T>
+	ReadOnlySpan<byte> (as underlying helper)

@@ -8,13 +8,20 @@ using System.Numerics;
 using EcsLite.Messages;
 using BrickEngine.Editor.Messages;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using BrickEngine.Editor.Data;
 
 namespace BrickEngine.Editor
 {
-    public class EditorManager : IDisposable
+    public sealed class EditorManager : IDisposable
     {
         const string statusFileName = "EditorStatus.cfg";
-        readonly JsonSerializerOptions options = new JsonSerializerOptions() { IncludeFields = true };
+        readonly JsonSerializerOptions options = new()
+        {
+            ReferenceHandler = ReferenceHandler.Preserve,
+            WriteIndented = true,
+            Converters = { }
+        };
         private readonly Dictionary<Type, object> _injectedSingletons;
         private readonly Dictionary<string, object> _injected;
         private readonly Dictionary<EcsWorld, List<EcsLocalEntity>> _selectedEntites;
@@ -205,13 +212,18 @@ namespace BrickEngine.Editor
 
         public void Dispose()
         {
-            EditorConfig cfg = new EditorConfig();
+            var cfg = new EditorConfig();
             foreach (var item in WindowManager.NamedWindows)
             {
                 cfg.WindowStates.Add(item.Key, WindowManager.GetWindow(item.Value).Enabled);
             }
             using var fs = new FileStream(statusFileName, FileMode.Create);
             JsonSerializer.Serialize(fs, cfg, options);
+            using var fs2 = new FileStream("World.dmp", FileMode.Create);
+            using var writer = new Utf8JsonWriter(fs2);
+            var c = new GigaTestComponent();
+            GigaTestComponent.OnInit(ref c);
+            JsonTextSerializer.Serialize(c, typeof(GigaTestComponent), writer);
         }
     }
 }

@@ -572,6 +572,28 @@ namespace BinSerialize
         /// <param name="span">Span to write to.</param>
         /// <param name="val">Value to write.</param>
         /// <typeparam name="T">Type of the struct to write.</typeparam>
+        public static int WriteStruct<T>(ref Span<byte> span, ref T val)
+            where T : unmanaged
+        {
+            MemoryMarshal.Write(span, ref val);
+
+            // 'Advance' the span.
+            var size = Unsafe.SizeOf<T>();
+            span = span.Slice(size);
+            return size;
+        }
+        /// <summary>
+        /// Write a unmanaged struct.
+        /// </summary>
+        /// <remarks>
+        /// When using this make sure that 'T' has a explict memory-layout so its consistent
+        /// accross platforms.
+        /// In other words, only use this if you are 100% sure its safe to do so.
+        /// Will consume sizeof T.
+        /// </remarks>
+        /// <param name="span">Span to write to.</param>
+        /// <param name="val">Value to write.</param>
+        /// <typeparam name="T">Type of the struct to write.</typeparam>
         public static int WriteStruct<T>(ref Span<byte> span, T val)
             where T : unmanaged
         {
@@ -582,7 +604,6 @@ namespace BinSerialize
             span = span.Slice(size);
             return size;
         }
-
         /// <summary>
         /// Read a boolean.
         /// </summary>

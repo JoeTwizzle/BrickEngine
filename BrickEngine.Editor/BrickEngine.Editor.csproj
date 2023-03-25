@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Utils\SerializedTypes.cs~RF128dc2b8.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BrickEngine.Assets\BrickEngine.Assets.csproj" />
     <ProjectReference Include="..\BrickEngine.Core\BrickEngine.Core.csproj" />
     <ProjectReference Include="..\BrickEngine.Importers\BrickEngine.Importers.csproj" />

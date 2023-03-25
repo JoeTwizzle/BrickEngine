@@ -22,7 +22,7 @@ namespace BrickEngine.Assets.Data
         TexCoord3 = 128,
     }
 
-    public readonly struct VertexData : ISerializable<VertexData>
+    public readonly struct VertexData : IBinarySerializable<VertexData>
     {
         //Either Length is either Array.Empty or VertexCount
         public readonly VertexFeatures VertexFeatures;
@@ -116,7 +116,7 @@ namespace BrickEngine.Assets.Data
         }
     }
 
-    public readonly struct IndexData : ISerializable<IndexData>
+    public readonly struct IndexData : IBinarySerializable<IndexData>
     {
         public readonly int[] Indices;
 
@@ -138,7 +138,7 @@ namespace BrickEngine.Assets.Data
         }
     }
 
-    public class MeshData : ISerializable<MeshData>
+    public class MeshData : IBinarySerializable<MeshData>
     {
         public readonly VertexData VertexData;
         public readonly IndexData IndexData;

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BrickEngine.Editor
 {
-    struct GigaTestComponent : IEcsInit<GigaTestComponent>
+    struct GigaTestComponent : IComponent, IEcsInit<GigaTestComponent>
     {
         public string Name;
         [Drag]

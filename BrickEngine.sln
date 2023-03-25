@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid.Utilities", "..\vel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid.StartupUtilities", "..\veldrid\src\Veldrid.StartupUtilities\Veldrid.StartupUtilities.csproj", "{3955D97C-32C2-428F-8B6D-1C653B61B069}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcsLite", "..\ecslite\ecslite\EcsLite.csproj", "{4981C1DE-6259-440D-882B-F51E7766C6B5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrickEngine.Assets", "BrickEngine.Assets\BrickEngine.Assets.csproj", "{E5650848-1E1F-440B-9436-D4A077D32399}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrickEngine.Importers", "BrickEngine.Importers\BrickEngine.Importers.csproj", "{5C29F0F3-FC7D-4444-8B37-E1B400920AC5}"
@@ -36,6 +34,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImNodes.NET", "..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImNodes.NET\ImNodes.NET.csproj", "{12020518-1A4A-4E76-9C78-7A59B2059EE3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImPlot.NET", "..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImPlot.NET\ImPlot.NET.csproj", "{E00E8A2F-0022-47B4-B576-A2002538407B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrickEngine.Assets.Tests", "BrickEngine.Assets.Tests\BrickEngine.Assets.Tests.csproj", "{09EA436E-13D8-4B58-8CFA-942799DE292D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,10 +63,6 @@ Global
 		{3955D97C-32C2-428F-8B6D-1C653B61B069}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3955D97C-32C2-428F-8B6D-1C653B61B069}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3955D97C-32C2-428F-8B6D-1C653B61B069}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4981C1DE-6259-440D-882B-F51E7766C6B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4981C1DE-6259-440D-882B-F51E7766C6B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4981C1DE-6259-440D-882B-F51E7766C6B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4981C1DE-6259-440D-882B-F51E7766C6B5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E5650848-1E1F-440B-9436-D4A077D32399}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E5650848-1E1F-440B-9436-D4A077D32399}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5650848-1E1F-440B-9436-D4A077D32399}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -103,6 +99,10 @@ Global
 		{E00E8A2F-0022-47B4-B576-A2002538407B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E00E8A2F-0022-47B4-B576-A2002538407B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E00E8A2F-0022-47B4-B576-A2002538407B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09EA436E-13D8-4B58-8CFA-942799DE292D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09EA436E-13D8-4B58-8CFA-942799DE292D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09EA436E-13D8-4B58-8CFA-942799DE292D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09EA436E-13D8-4B58-8CFA-942799DE292D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

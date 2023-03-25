@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ecslite\ecslite\EcsLite.csproj" />
     <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImGui.NET\ImGui.NET.csproj" />
     <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImGuizmo.NET\ImGuizmo.NET.csproj" />
     <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImNodes.NET\ImNodes.NET.csproj" />

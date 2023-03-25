@@ -6,7 +6,7 @@ using BinSerialize;
 
 namespace BrickEngine.Assets.Data
 {
-    public class FileData : ISerializable<FileData>
+    public class FileData : IBinarySerializable<FileData>
     {
         public readonly byte[] Data;
 

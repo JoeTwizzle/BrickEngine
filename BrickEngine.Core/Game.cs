@@ -34,6 +34,7 @@ namespace BrickEngine.Core
         public EcsSystems Systems { get; private set; }
         public EcsWorld DefaultWorld { get; private set; }
         public InputSnapshot InputSnapshot { get; private set; }
+        public bool RenderdocLoaded { get; private set; }
         public event Action OnResized;
         public event Action OnInit;
         public event Action<EcsWorld> OnCreateDefaultWorld;
@@ -104,16 +105,9 @@ namespace BrickEngine.Core
                 Debug = false
 #endif
             };
+            RenderdocLoaded = false;
 #if VALIDATION
-            //if (RenderDoc.Load(out _renderDoc))
-            //{
-            //    Console.WriteLine("Renderdoc loaded");
-            //    _renderDoc.LaunchReplayUI();
-            //}
-            //else
-            //{
-            //    Console.WriteLine("Renderdoc failed to load");
-            //}
+            RenderdocLoaded = RenderDoc.Load(out _renderDoc);
 #endif
             autoDisposer = new AutoDisposer();
 

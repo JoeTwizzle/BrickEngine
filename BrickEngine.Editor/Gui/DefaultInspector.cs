@@ -1,15 +1,11 @@
 ﻿using BrickEngine.Core.Mathematics;
+using BrickEngine.Core.Utilities;
 using BrickEngine.Editor.Gui.Attributes;
-using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BrickEngine.Editor.Gui
 {
@@ -24,10 +20,11 @@ namespace BrickEngine.Editor.Gui
     }
     public static class DefaultInspector
     {
-        static Dictionary<Type, FieldInfo[]> fieldCache = new Dictionary<Type, FieldInfo[]>();
+        const int maxStack = 512;
+
         static readonly Dictionary<Type, int> typeRenderers;
-        private unsafe static readonly delegate*<FieldInfo, Span<object>, bool>[] functions;
-        static readonly List<FieldInfo> filteredFields = new List<FieldInfo>();
+        private static readonly unsafe delegate*<FieldInfo, Span<object>, bool>[] functions;
+
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         public static extern void igClearActiveID();
         static DefaultInspector()
@@ -70,35 +67,7 @@ namespace BrickEngine.Editor.Gui
                 };
             }
         }
-        const int maxStack = 512;
 
-        public static void PurgeCache()
-        {
-            fieldCache.Clear();
-        }
-
-        public static FieldInfo[] GetTypeCache(Type t)
-        {
-            if (!fieldCache.TryGetValue(t, out var fieldsCached))
-            {
-                filteredFields.Clear();
-                var fields = t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    if (fields[i].IsPublic && !Attribute.IsDefined(fields[i], typeof(EditorIgnoreAttribute)))
-                    {
-                        filteredFields.Add(fields[i]);
-                    }
-                    else if (!fields[i].IsPublic && Attribute.IsDefined(fields[i], typeof(EditableAttribute)))
-                    {
-                        filteredFields.Add(fields[i]);
-                    }
-                }
-                fieldsCached = filteredFields.ToArray();
-                fieldCache.Add(t, fieldsCached);
-            }
-            return fieldsCached;
-        }
         public static EditResult DrawComponents(Span<object> components, out FieldInfo? activefield)
         {
             activefield = null;
@@ -117,7 +86,7 @@ namespace BrickEngine.Editor.Gui
                 }
                 ImGui.EndPopup();
             }
-            var fieldsCached = GetTypeCache(t);
+            var fieldsCached = ReflectionCache.GetCacheForType(t);
             if (fieldsCached.Length <= 0)
             {
                 return EditResult.Unchanged;
@@ -177,7 +146,7 @@ namespace BrickEngine.Editor.Gui
             if (multiline)
             {
                 float spaceX = ImGui.GetContentRegionAvail().X;
-                
+
                 dirty = ImHelper.MultiInputTextMultiline(field.Name, data.AsSpan(0, components.Length), length, new Vector2(spaceX, 120));
             }
             else

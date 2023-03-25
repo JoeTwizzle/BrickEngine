@@ -22,7 +22,7 @@ namespace BrickEngine.Assets.Data
             Data = data;
         }
     }
-    public class TextureData : ISerializable<TextureData>
+    public class TextureData : IBinarySerializable<TextureData>
     {
         public readonly uint VdFormat;
         public readonly MipLevel[] Miplevels;

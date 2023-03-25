@@ -9,7 +9,7 @@ using System.Reflection.Metadata;
 
 namespace BrickEngine.Assets.Data
 {
-    public class NodeGraph : ISerializable<NodeGraph>
+    public class NodeGraph : IBinarySerializable<NodeGraph>
     {
         public struct Node
         {

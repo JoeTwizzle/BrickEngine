@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,7 +11,19 @@ namespace BinSerialize
     public static unsafe partial class BinarySerializer
     {
         //Write
-        public static int WriteVec2Array(ref Span<byte> span, Vector2[] vectors)
+        public static int WriteSpan<T>(ref Span<byte> span, Span<T> vectors) where T : unmanaged
+        {
+            WritePackedInt(ref span, vectors.Length);
+            for (int i = 0; i < vectors.Length; i++)
+            {
+                ref var vector = ref vectors[i];
+                WriteStruct(ref span, ref vector);
+            }
+            return sizeof(int) + Unsafe.SizeOf<T>() * vectors.Length;
+        }
+
+        
+        public static int WriteVec2Array(ref Span<byte> span, Span<Vector2> vectors)
         {
             WritePackedInt(ref span, vectors.Length);
             for (int i = 0; i < vectors.Length; i++)
@@ -21,7 +34,7 @@ namespace BinSerialize
             return sizeof(int) + sizeof(float) * 2 * vectors.Length;
         }
 
-        public static int WriteVec3Array(ref Span<byte> span, Vector3[] vectors)
+        public static int WriteVec3Array(ref Span<byte> span, Span<Vector3> vectors)
         {
             WritePackedInt(ref span, vectors.Length);
             for (int i = 0; i < vectors.Length; i++)
@@ -32,7 +45,7 @@ namespace BinSerialize
             return sizeof(int) + sizeof(float) * 3 * vectors.Length;
         }
 
-        public static int WriteVec4Array(ref Span<byte> span, Vector4[] vectors)
+        public static int WriteVec4Array(ref Span<byte> span, Span<Vector4> vectors)
         {
             WritePackedInt(ref span, vectors.Length);
             for (int i = 0; i < vectors.Length; i++)
@@ -43,7 +56,7 @@ namespace BinSerialize
             return sizeof(int) + sizeof(float) * 4 * vectors.Length;
         }
 
-        public static int WriteIntArray(ref Span<byte> span, int[] integers)
+        public static int WriteIntArray(ref Span<byte> span, Span<int> integers)
         {
             int headerSize = WritePackedInt(ref span, integers.Length);
             for (int i = 0; i < integers.Length; i++)
@@ -53,7 +66,7 @@ namespace BinSerialize
             return headerSize + sizeof(int) * 4 * integers.Length;
         }
 
-        public static int WriteUIntArray(ref Span<byte> span, uint[] integers)
+        public static int WriteUIntArray(ref Span<byte> span, Span<uint> integers)
         {
             int headerSize = WritePackedInt(ref span, integers.Length);
             for (int i = 0; i < integers.Length; i++)

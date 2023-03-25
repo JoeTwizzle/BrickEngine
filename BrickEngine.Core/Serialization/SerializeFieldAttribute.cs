@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BrickEngine.Editor.Gui.Attributes
+namespace BrickEngine.Core.Serialization
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class EditorIgnoreAttribute : Attribute
+    public class SerializeFieldAttribute : Attribute
     {
     }
 }
