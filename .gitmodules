@@ -1,3 +1,6 @@
-[submodule "Archie"]
-	path = Archie
-	url = https://github.com/JoeTwizzle/Archie
+[submodule "EntityForge"]
+	path = EntityForge
+	url = https://github.com/JoeTwizzle/EntityForge
+[submodule "veldrid"]
+	path = veldrid
+	url = https://github.com/JoeTwizzle/veldrid

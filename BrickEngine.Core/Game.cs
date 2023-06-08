@@ -3,8 +3,7 @@ global using Veldrid.Sdl2;
 global using Veldrid.StartupUtilities;
 global using Veldrid.Utilities;
 global using System.Numerics;
-global using EcsLite;
-global using EcsLite.Systems;
+global using Archie;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +30,6 @@ namespace BrickEngine.Core
         public bool ResizedThisFrame { get; private set; }
         public bool IsFullscreen { get; private set; }
         public bool Initialized { get; private set; }
-        public EcsSystems Systems { get; private set; }
         public EcsWorld DefaultWorld { get; private set; }
         public InputSnapshot InputSnapshot { get; private set; }
         public bool RenderdocLoaded { get; private set; }
@@ -215,9 +213,12 @@ namespace BrickEngine.Core
             _stopwatch = Stopwatch.StartNew();
             DeltaTimeFull = double.Epsilon;
             DeltaTime = MathF.Max(DeltaTime, float.Epsilon);
+            long prev = Stopwatch.GetTimestamp();
             while (Window.Exists)
             {
-                double prev = _stopwatch.Elapsed.TotalSeconds;
+                long current = Stopwatch.GetTimestamp();
+                double dt = (current - prev) * 1e-7;
+                prev = current;
                 InputSnapshot = Window.PumpEvents();
                 Input.UpdateFrameInput(InputSnapshot, Window);
                 if (ResizedThisFrame)
@@ -230,26 +231,6 @@ namespace BrickEngine.Core
                     }
                     ResizedThisFrame = false;
                 }
-                PreUpdate();
-                OnPreUpdate?.Invoke();
-                if (GameState == GameState.Running)
-                {
-                    Systems.Run(DeltaTimeFull);
-                }
-                PostUpdate();
-                OnPostUpdate?.Invoke();
-                if (true)
-                {
-                    GraphicsDevice.SwapBuffers();
-                    PostSwap();
-                    OnPostSwap?.Invoke();
-                    autoDisposer.EndFrame();
-                }
-                double current = _stopwatch.Elapsed.TotalSeconds;
-                DeltaTimeFull = current - prev;
-                DeltaTimeFull = Math.Max(DeltaTimeFull, double.Epsilon);
-                DeltaTime = (float)DeltaTimeFull;
-                DeltaTime = MathF.Max(DeltaTime, float.Epsilon);
             }
             GraphicsDevice.WaitForIdle();
             DisposeGame();

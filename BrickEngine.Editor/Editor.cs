@@ -1,8 +1,6 @@
 ﻿global using ImGuiNET;
 global using BrickEngine.Core;
-global using EcsLite;
-global using EcsLite.Systems;
-global using EcsLite.Messages;
+global using Archie;
 using System;
 using Veldrid;
 using BrickEngine.Gui;

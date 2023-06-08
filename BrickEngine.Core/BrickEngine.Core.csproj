@@ -10,30 +10,30 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>$(DefineConstants)TRACE;LEOECSLITE_WORLD_EVENTS;VALIDATION</DefineConstants>
+    <DefineConstants>$(DefineConstants);TRACE;VALIDATION</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>$(DefineConstants)TRACE;LEOECSLITE_WORLD_EVENTS;VALIDATION</DefineConstants>
+    <DefineConstants>$(DefineConstants);TRACE;VALIDATION</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.0.0" />
-    <PackageReference Include="NativeFileDialogSharp" Version="0.5.0" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.1.0" />
+    <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha" />
+    <PackageReference Include="Twizzle.ImGui.NET" Version="1.89.4" />
+    <PackageReference Include="Twizzle.ImGuizmo.NET" Version="1.89.4" />
+    <PackageReference Include="Twizzle.ImNodes.NET" Version="1.89.4" />
+    <PackageReference Include="Twizzle.ImPlot.NET" Version="1.89.4" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImGui.NET\ImGui.NET.csproj" />
-    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImGuizmo.NET\ImGuizmo.NET.csproj" />
-    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImNodes.NET\ImNodes.NET.csproj" />
-    <ProjectReference Include="..\..\ImGui.NET-docking\Newer\ImGui.NET-docking\src\ImPlot.NET\ImPlot.NET.csproj" />
-    <ProjectReference Include="..\..\veldrid\src\Veldrid.RenderDoc\Veldrid.RenderDoc.csproj" />
-    <ProjectReference Include="..\..\veldrid\src\Veldrid.SDL2\Veldrid.SDL2.csproj" />
-    <ProjectReference Include="..\..\veldrid\src\Veldrid.StartupUtilities\Veldrid.StartupUtilities.csproj" />
-    <ProjectReference Include="..\..\veldrid\src\Veldrid.Utilities\Veldrid.Utilities.csproj" />
-    <ProjectReference Include="..\..\veldrid\src\Veldrid\Veldrid.csproj" />
+    <ProjectReference Include="..\Archie\EntityForge\EntityForge.csproj" />
     <ProjectReference Include="..\BrickEngine.Assets\BrickEngine.Assets.csproj" />
+    <ProjectReference Include="..\veldrid\src\Veldrid.RenderDoc\Veldrid.RenderDoc.csproj" />
+    <ProjectReference Include="..\veldrid\src\Veldrid.StartupUtilities\Veldrid.StartupUtilities.csproj" />
+    <ProjectReference Include="..\veldrid\src\Veldrid.Utilities\Veldrid.Utilities.csproj" />
+    <ProjectReference Include="..\veldrid\src\Veldrid\Veldrid.csproj" />
   </ItemGroup>
 
   <ItemGroup>
