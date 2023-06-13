@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BrickEngine.Core\BrickEngine.Core.csproj" />
+    <ProjectReference Include="..\BrickEngine.Core\BrickEngine.csproj" />
   </ItemGroup>
 
 </Project>

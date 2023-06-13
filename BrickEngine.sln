@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrickEngine.Core", "BrickEngine.Core\BrickEngine.Core.csproj", "{AB650923-AB60-4FBE-9717-EC8BFC223959}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrickEngine", "BrickEngine.Core\BrickEngine.csproj", "{AB650923-AB60-4FBE-9717-EC8BFC223959}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrickEngine.Assets", "BrickEngine.Assets\BrickEngine.Assets.csproj", "{E5650848-1E1F-440B-9436-D4A077D32399}"
 EndProject
@@ -34,6 +34,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid.RenderDoc", "veldrid\src\Veldrid.RenderDoc\Veldrid.RenderDoc.csproj", "{D1D19845-BA9E-4CCB-B435-ACD6BEF26E34}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EntityForge", "Archie\EntityForge\EntityForge.csproj", "{0286ECC8-F58C-4D65-9F7D-769B31F2BDDE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EntityForge.QueryGen", "Archie\EntityForge.QueryGen\EntityForge.QueryGen.csproj", "{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrickEngine.Example", "BrickEngine.Example\BrickEngine.Example.csproj", "{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -155,6 +159,22 @@ Global
 		{0286ECC8-F58C-4D65-9F7D-769B31F2BDDE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0286ECC8-F58C-4D65-9F7D-769B31F2BDDE}.Release|x64.ActiveCfg = Release|x64
 		{0286ECC8-F58C-4D65-9F7D-769B31F2BDDE}.Release|x64.Build.0 = Release|x64
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Debug|x64.ActiveCfg = Debug|x64
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Debug|x64.Build.0 = Debug|x64
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Release|x64.ActiveCfg = Release|x64
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F}.Release|x64.Build.0 = Release|x64
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Debug|x64.Build.0 = Debug|Any CPU
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Release|x64.ActiveCfg = Release|Any CPU
+		{4A80B2B5-1BEA-47A7-8B57-6C70DDBCDA4D}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -168,6 +188,7 @@ Global
 		{5C36FA10-7927-4947-A55A-A598AFF17AE5} = {ACC88621-C794-4DC6-AE3D-7B40D65BFA9F}
 		{D1D19845-BA9E-4CCB-B435-ACD6BEF26E34} = {ACC88621-C794-4DC6-AE3D-7B40D65BFA9F}
 		{0286ECC8-F58C-4D65-9F7D-769B31F2BDDE} = {D64F3F83-13CB-42DC-AEC6-39BE05A8A025}
+		{8C8A1DC7-5D34-45E5-8207-A76E4EA34D9F} = {D64F3F83-13CB-42DC-AEC6-39BE05A8A025}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DBE49F3A-3131-4472-993B-F5C9F38D7B3C}

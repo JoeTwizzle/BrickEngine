@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.1.0" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.0" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha" />
     <PackageReference Include="Twizzle.ImGui.NET" Version="1.89.4" />
     <PackageReference Include="Twizzle.ImGuizmo.NET" Version="1.89.4" />

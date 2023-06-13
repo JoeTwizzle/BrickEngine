@@ -1,99 +1,69 @@
 ﻿global using ImGuiNET;
 global using BrickEngine.Core;
-global using Archie;
+global using EntityForge;
 using System;
 using Veldrid;
 using BrickEngine.Gui;
 
 namespace BrickEngine.Editor
 {
-    public class Editor
+    public class Editor : IFeatureLayer
     {
-        private readonly ImGuiController _imGuiController;
-        private readonly EditorManager _editor;
-        private readonly Game _game;
-        private readonly CommandList _cl;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private ImGuiController _imGuiController;
+        //private EditorManager _editor;
+        private CommandList _cl;
+        private GraphicsDevice _gd;
+        public GameWindow Game { get; private set; }
+        public World EditorWorld { get; private set; }
 
-        public Editor(Game game)
+        public bool IsEnabled { get; private set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+        public void OnLoad(GameWindow game)
         {
-            _editor = new EditorManager(game);
-            _game = game;
-            _imGuiController = new ImGuiController(_game.GraphicsDevice, _game.Window, _game.GraphicsDevice.MainSwapchain!.Framebuffer.OutputDescription, _game.Window.Width, _game.Window.Height);
-            _cl = _game.ResourceFactory.CreateCommandList();
-            game.OnResized += Game_OnResized;
-            game.OnCreateDefaultWorld += Game_OnCreateDefaultWorld;
-            game.OnRegisterWorlds += Game_OnRegisterWorlds;
-            game.OnCreateSystems += Game_OnCreateSystems;
-            game.OnInit += Game_OnInit;
-            game.OnPreUpdate += Game_OnPreUpdate;
-            game.OnPostUpdate += Game_OnPostUpdate;
-            game.OnPostSwap += Game_OnPostSwap;
-            game.OnDisposeGame += Game_OnDisposeGame;
+            IsEnabled = true;
+            Game = game;
+            EditorWorld = new();
+            _gd = Game.GraphicsContext.GraphicsDevice;
+            _imGuiController = new ImGuiController(_gd, Game.Window, _gd.MainSwapchain!.Framebuffer.OutputDescription, Game.Window.Width, Game.Window.Height);
+            _cl = Game.GraphicsContext.ResourceFactory.CreateCommandList();
+            //_editor = new EditorManager(this);
+            game.Window.Resized += Window_Resized;
         }
 
-        private void Game_OnDisposeGame()
+        private void Window_Resized()
         {
-            _editor.Dispose();
-            _imGuiController.Dispose();
+            _imGuiController.WindowResized(Game.Window.Width, Game.Window.Height);
         }
 
-        private void Game_OnCreateDefaultWorld(EcsWorld world)
+        public void Update()
         {
-            world.AllowPool<GigaTestComponent>();
-        }
-
-        private void Game_OnRegisterWorlds()
-        {
-            EcsWorld world = new EcsWorld();
-            _game.AddWorld("Editor", world);
-        }
-
-        private void Game_OnCreateSystems(EcsSystemsBuilder obj)
-        {
-
-        }
-
-        private void Game_OnInit()
-        {
-            _editor.InjectSingleton(_game);
-            _editor.Init();
-            _game.DefaultWorld.NewEntity();
-            _game.DefaultWorld.NewEntity();
-            var pool = _game.DefaultWorld.GetPool<GigaTestComponent>();
-            pool.Add(_game.DefaultWorld.NewEntity());
-            pool.Add(_game.DefaultWorld.NewEntity());
-        }
-
-        private void Game_OnPreUpdate()
-        {
-            _imGuiController.Update(_game.DeltaTime);
-        }
-
-        private void Game_OnPostUpdate()
-        {
+            _imGuiController.Update(Game.DeltaTime);
             ImGui.ShowDemoWindow();
-            _editor.Update();
+            //_editor.Update();
             _cl.Begin();
-            _cl.SetFramebuffer(_game.GraphicsDevice.SwapchainFramebuffer!);
+            _cl.SetFramebuffer(_gd.SwapchainFramebuffer!);
             _cl.SetFullViewport(0);
             _cl.ClearColorTarget(0, RgbaFloat.Blue);
             //_cl.ClearDepthStencil(0);
-            _imGuiController.Render(_game.GraphicsDevice, _cl);
+            _imGuiController.Render(_gd, _cl);
             //_cl.SetFramebuffer(_game.GraphicsDevice.SwapchainFramebuffer!);
             //_cl.ClearColorTarget(0, RgbaFloat.Green);
             //_cl.SetFullViewport(0);
             _cl.End();
-            _game.SubmitCommands(_cl);
+            Game.GraphicsContext.SubmitCommands(_cl);
         }
 
-        private void Game_OnPostSwap()
+        public void Display()
         {
-            _imGuiController.SwapExtraWindows(_game.GraphicsDevice);
+            _imGuiController.SwapExtraWindows(_gd);
         }
 
-        private void Game_OnResized()
+        public void OnUnload()
         {
-            _imGuiController.WindowResized(_game.Window.Width, _game.Window.Height);
+            Game.Window.Resized -= Window_Resized;
+            EditorWorld.Dispose();
         }
     }
 }

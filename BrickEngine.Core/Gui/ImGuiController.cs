@@ -84,7 +84,7 @@ namespace BrickEngine.Gui
             IntPtr implotContext = ImPlot.CreateContext();
             ImPlot.SetCurrentContext(implotContext);
             ImPlot.SetImGuiContext(context);
-            ImGuizmo.SetImGuiContext(context);
+            //ImGuizmo.SetImGuiContext(context);
             ImGuiIOPtr io = ImGui.GetIO();
             io.Fonts.AddFontFromFileTTF("Roboto-Bold.ttf", 18);
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
@@ -779,13 +779,13 @@ namespace BrickEngine.Gui
             {
                 _winKeyDown = keyEvent.Down;
             }
-            io.KeyMods = _controlDown ? ImGuiKeyModFlags.Ctrl : ImGuiKeyModFlags.None;
+            io.KeyMods = _controlDown ? ImGuiKey.ImGuiMod_Ctrl : ImGuiKey.ImGuiMod_None;
             io.KeyCtrl = _controlDown;
-            io.KeyMods |= _altDown ? ImGuiKeyModFlags.Alt : ImGuiKeyModFlags.None;
+            io.KeyMods |= _altDown ? ImGuiKey.ImGuiMod_Alt : ImGuiKey.ImGuiMod_None;
             io.KeyAlt = _altDown;
-            io.KeyMods |= _shiftDown ? ImGuiKeyModFlags.Shift : ImGuiKeyModFlags.None;
+            io.KeyMods |= _shiftDown ? ImGuiKey.ImGuiMod_Shift : ImGuiKey.ImGuiMod_None;
             io.KeyShift = _shiftDown;
-            io.KeyMods |= _winKeyDown ? ImGuiKeyModFlags.Super : ImGuiKeyModFlags.None;
+            io.KeyMods |= _winKeyDown ? ImGuiKey.ImGuiMod_Super : ImGuiKey.ImGuiMod_None;
             io.KeySuper = _winKeyDown;
         }
 

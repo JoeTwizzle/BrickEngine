@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BrickEngine.Core.Utilities;
+using BrickEngine.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,7 +13,7 @@ namespace BrickEngine.Core.Graphics
     public class TypedBufferList<T> where T : unmanaged
     {
         public DeviceBuffer DeviceBuffer { get; private set; }
-        public readonly Game Game;
+        private readonly GraphicsContext graphicsContext;
         public readonly uint StructuredBufferMinOffsetAlignment;
         public readonly uint UniformBufferMinOffsetAlignment;
         public readonly uint StructSize;
@@ -22,15 +24,15 @@ namespace BrickEngine.Core.Graphics
         public readonly BufferUsage Usage;
         public uint Capacity { get; private set; }
         public uint Count { get; private set; }
-        public TypedBufferList(Game game, BufferUsage usage, bool resizable = false, bool raw = false, uint initialSize = 16)
+        public TypedBufferList(GraphicsContext graphicsContext, BufferUsage usage, bool resizable = false, bool raw = false, uint initialSize = 16)
         {
+            this.graphicsContext = graphicsContext;
             Count = 0;
             Resizable = resizable;
-            Game = game;
             Raw = raw;
             Usage = usage;
-            StructuredBufferMinOffsetAlignment = game.GraphicsDevice.StructuredBufferMinOffsetAlignment;
-            UniformBufferMinOffsetAlignment = game.GraphicsDevice.UniformBufferMinOffsetAlignment;
+            StructuredBufferMinOffsetAlignment = graphicsContext.GraphicsDevice.StructuredBufferMinOffsetAlignment;
+            UniformBufferMinOffsetAlignment = graphicsContext.GraphicsDevice.UniformBufferMinOffsetAlignment;
             StructSize = (uint)Unsafe.SizeOf<T>();
             if (usage.HasFlag(BufferUsage.UniformBuffer))
             {
@@ -51,19 +53,19 @@ namespace BrickEngine.Core.Graphics
             }
             Capacity = initialSize;
             BufferDescription description = new BufferDescription(PaddedStructSize * Capacity, usage, StructByteStride, raw);
-            DeviceBuffer = game.ResourceFactory.CreateBuffer(description);
+            DeviceBuffer = graphicsContext.ResourceFactory.CreateBuffer(description);
         }
 
         private void ResizeBuffer(CommandList cl, uint cap)
         {
             BufferDescription description = new BufferDescription(PaddedStructSize * cap, Usage, StructByteStride, Raw);
             var oldBuffer = DeviceBuffer;
-            DeviceBuffer = Game.ResourceFactory.CreateBuffer(description);
+            DeviceBuffer = graphicsContext.ResourceFactory.CreateBuffer(description);
             Capacity = cap;
             if (oldBuffer != null)
             {
                 cl.CopyBuffer(oldBuffer, 0, DeviceBuffer, 0, Math.Min(DeviceBuffer.SizeInBytes, oldBuffer.SizeInBytes));
-                Game.DisposeWhenUnused(oldBuffer);
+                graphicsContext.DisposeWhenUnused(oldBuffer);
             }
         }
 
