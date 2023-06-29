@@ -6,7 +6,8 @@ using BinSerialize;
 
 namespace BrickEngine.Assets.Data
 {
-    public class FileData : IBinarySerializable<FileData>
+    [MemoryPack.MemoryPackable]
+    public sealed partial class FileData : IBinarySerializable<FileData>
     {
         public readonly byte[] Data;
 
@@ -15,7 +16,7 @@ namespace BrickEngine.Assets.Data
             Data = data;
         }
 
-        public static FileData Deserialize(ReadOnlySpan<byte> span)
+        public static FileData Deserialize(ref ReadOnlySpan<byte> span)
         {
             int length = BinarySerializer.ReadPackedInt(ref span);
             var data = BinarySerializer.ReadBlock(ref span, length);

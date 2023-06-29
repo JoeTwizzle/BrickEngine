@@ -11,15 +11,15 @@ namespace BinSerialize
     public static unsafe partial class BinarySerializer
     {
         //Write
-        public static int WriteSpan<T>(ref Span<byte> span, Span<T> vectors) where T : unmanaged
+        public static int WriteArray<T>(ref Span<byte> span, Span<T> data) where T : unmanaged
         {
-            WritePackedInt(ref span, vectors.Length);
-            for (int i = 0; i < vectors.Length; i++)
+            WritePackedInt(ref span, data.Length);
+            for (int i = 0; i < data.Length; i++)
             {
-                ref var vector = ref vectors[i];
+                ref var vector = ref data[i];
                 WriteStruct(ref span, ref vector);
             }
-            return sizeof(int) + Unsafe.SizeOf<T>() * vectors.Length;
+            return sizeof(int) + Unsafe.SizeOf<T>() * data.Length;
         }
 
         

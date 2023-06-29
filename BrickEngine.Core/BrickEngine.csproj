@@ -20,7 +20,7 @@
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.0" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha" />
     <PackageReference Include="Twizzle.ImGui.NET" Version="1.89.4" />
-    <PackageReference Include="Twizzle.ImGuizmo.NET" Version="1.89.4" />
+    <PackageReference Include="Twizzle.ImGuizmo.NET" Version="1.89.4.1" />
     <PackageReference Include="Twizzle.ImNodes.NET" Version="1.89.4" />
     <PackageReference Include="Twizzle.ImPlot.NET" Version="1.89.4" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />

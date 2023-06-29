@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BrickEngine.Assets
 {
-    public class ByteBufferWriter : IBufferWriter<byte>, IDisposable
+    public sealed class ByteBufferWriter : IBufferWriter<byte>, IDisposable
     {
         private byte[] _rentedBuffer;
         private int _written;
@@ -17,8 +17,9 @@ namespace BrickEngine.Assets
 
         public ByteBufferWriter(int initialCapacity = MinimumBufferSize)
         {
-            if (initialCapacity <= 0)
-                throw new ArgumentException(nameof(initialCapacity));
+
+            if (initialCapacity < 0)
+                throw new ArgumentException(nameof(initialCapacity) + " must be positive.");
 
             _rentedBuffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
             _written = 0;
@@ -97,7 +98,7 @@ namespace BrickEngine.Assets
             CheckIfDisposed();
 
             if (sizeHint < 0)
-                throw new ArgumentException(nameof(sizeHint));
+                throw new ArgumentException(nameof(sizeHint) + " must be positive.");
 
             CheckAndResizeBuffer(sizeHint);
             return _rentedBuffer.AsMemory(_written);
@@ -108,7 +109,7 @@ namespace BrickEngine.Assets
             CheckIfDisposed();
 
             if (sizeHint < 0)
-                throw new ArgumentException(nameof(sizeHint));
+                throw new ArgumentException(nameof(sizeHint) + " must be positive.");
 
             CheckAndResizeBuffer(sizeHint);
             return _rentedBuffer.AsSpan(_written);

@@ -49,12 +49,10 @@ namespace BrickEngine.Gui
         private Vector2 _scaleFactor = Vector2.One;
 
         // Image trackers
-        private readonly Dictionary<TextureView, ResourceSetInfo> _setsByView
-            = new Dictionary<TextureView, ResourceSetInfo>();
-        private readonly Dictionary<Texture, TextureView> _autoViewsByTexture
-            = new Dictionary<Texture, TextureView>();
-        private readonly Dictionary<IntPtr, ResourceSetInfo> _viewsById = new Dictionary<IntPtr, ResourceSetInfo>();
-        private readonly List<IDisposable> _ownedResources = new List<IDisposable>();
+        private readonly Dictionary<TextureView, ResourceSetInfo> _setsByView = new ();
+        private readonly Dictionary<Texture, TextureView> _autoViewsByTexture = new();
+        private readonly Dictionary<IntPtr, ResourceSetInfo> _viewsById = new();
+        private readonly List<IDisposable> _ownedResources = new();
         private readonly VeldridImGuiWindow _mainViewportWindow;
         private readonly Platform_CreateWindow _createWindow;
         private readonly Platform_DestroyWindow _destroyWindow;
@@ -72,7 +70,9 @@ namespace BrickEngine.Gui
         /// <summary>
         /// Constructs a new ImGuiController.
         /// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public unsafe ImGuiController(GraphicsDevice gd, Sdl2Window window, OutputDescription outputDescription, int width, int height)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _gd = gd;
             _window = window;
@@ -84,7 +84,8 @@ namespace BrickEngine.Gui
             IntPtr implotContext = ImPlot.CreateContext();
             ImPlot.SetCurrentContext(implotContext);
             ImPlot.SetImGuiContext(context);
-            //ImGuizmo.SetImGuiContext(context);
+            ImGuizmo.SetImGuiContext(context);
+
             ImGuiIOPtr io = ImGui.GetIO();
             io.Fonts.AddFontFromFileTTF("Roboto-Bold.ttf", 18);
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
@@ -272,7 +273,7 @@ namespace BrickEngine.Gui
             Dispose();
         }
 
-        public void CreateDeviceResources(GraphicsDevice gd, OutputDescription outputDescription)
+        void CreateDeviceResources(GraphicsDevice gd, OutputDescription outputDescription)
         {
             _gd = gd;
             ResourceFactory factory = gd.ResourceFactory;

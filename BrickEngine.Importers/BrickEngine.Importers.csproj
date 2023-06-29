@@ -4,7 +4,6 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -18,9 +17,9 @@
 
   <ItemGroup>
     <PackageReference Include="BCnEncoder.Net" Version="2.1.0" />
-    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0026" />
-    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0026" />
-    <PackageReference Include="StbImageSharp" Version="2.27.8" />
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0029" />
+    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0029" />
+    <PackageReference Include="StbImageSharp" Version="2.27.13" />
   </ItemGroup>
 
   <ItemGroup>

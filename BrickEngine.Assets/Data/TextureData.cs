@@ -22,7 +22,7 @@ namespace BrickEngine.Assets.Data
             Data = data;
         }
     }
-    public class TextureData : IBinarySerializable<TextureData>
+    public sealed class TextureData : IBinarySerializable<TextureData>
     {
         public readonly uint VdFormat;
         public readonly MipLevel[] Miplevels;
@@ -33,7 +33,7 @@ namespace BrickEngine.Assets.Data
             Miplevels = miplevels;
         }
 
-        public static TextureData Deserialize(ReadOnlySpan<byte> blob)
+        public static TextureData Deserialize(ref ReadOnlySpan<byte> blob)
         {
             var VdFormat = BinarySerializer.ReadPackedUInt(ref blob);
             var MipCount = BinarySerializer.ReadByte(ref blob);

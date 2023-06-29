@@ -22,7 +22,7 @@ namespace BrickEngine.Core
         public GameWindow(bool debug)
         {
             Debug = debug;
-            WindowCreateInfo windowCI = new WindowCreateInfo()
+            WindowCreateInfo windowCI = new()
             {
                 WindowInitialState = WindowState.Normal,
                 WindowWidth = 1280,
@@ -32,13 +32,6 @@ namespace BrickEngine.Core
                 WindowTitle = "Brick Engine",
             };
             Window = VeldridStartup.CreateWindow(windowCI);
-            GraphicsDeviceOptions options = new GraphicsDeviceOptions
-            {
-                PreferStandardClipSpaceYDirection = true,
-                PreferDepthRangeZeroToOne = true,
-                Debug = debug
-            };
-
             Input = new Input(Window);
             GraphicsContext = new(this);
             Window.Resized += Window_Resized;
@@ -96,6 +89,7 @@ namespace BrickEngine.Core
                     }
                 }
                 GraphicsContext.GraphicsDevice.SwapBuffers();
+                GraphicsContext.EndFrame();
             }
             for (int i = 0; i < FeatureLayers.Length; i++)
             {

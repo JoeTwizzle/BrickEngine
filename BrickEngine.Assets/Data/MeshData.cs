@@ -36,6 +36,8 @@ namespace BrickEngine.Assets.Data
         public readonly Vector2[] TexCoord2;
         public readonly Vector2[] TexCoord3;
 
+
+
         public VertexData(int vertexCount, Vector3[] positions, Vector3[]? normals = null, Vector4[]? tangents = null, Vector4[]? colors = null,
             Vector2[]? texCoord0 = null, Vector2[]? texCoord1 = null, Vector2[]? texCoord2 = null, Vector2[]? texCoord3 = null)
         {
@@ -57,7 +59,7 @@ namespace BrickEngine.Assets.Data
         }
 
 
-        public static VertexData Deserialize(ReadOnlySpan<byte> span)
+        public static VertexData Deserialize(ref ReadOnlySpan<byte> span)
         {
             Vector3[] Positions = null!;
             Vector3[]? Normals = null;
@@ -67,7 +69,7 @@ namespace BrickEngine.Assets.Data
             Vector2[]? TexCoord1 = null;
             Vector2[]? TexCoord2 = null;
             Vector2[]? TexCoord3 = null;
-            VertexFeatures features = (VertexFeatures)BinarySerializer.ReadByte(ref span);
+            VertexFeatures features = (VertexFeatures)BinarySerializer.ReadInt(ref span);
             if (features.HasFlag(VertexFeatures.Positions)) Positions = BinarySerializer.ReadVec3Array(ref span);
             if (features.HasFlag(VertexFeatures.Normals)) Normals = BinarySerializer.ReadVec3Array(ref span);
             if (features.HasFlag(VertexFeatures.Tangents)) Tangents = BinarySerializer.ReadVec4Array(ref span);
@@ -84,7 +86,7 @@ namespace BrickEngine.Assets.Data
             var features = GetFeatures(data);
             var arrayCount = BitOperations.PopCount((uint)features);
             var span = writer.GetSpan(1 + arrayCount * data.VertexCount * sizeof(float) * 4);
-            BinarySerializer.WriteByte(ref span, (byte)features);
+            BinarySerializer.WriteInt(ref span, (int)features);
             if (features.HasFlag(VertexFeatures.Positions)) BinarySerializer.WriteVec3Array(ref span, data.Positions);
             if (features.HasFlag(VertexFeatures.Normals)) BinarySerializer.WriteVec3Array(ref span, data.Normals);
             if (features.HasFlag(VertexFeatures.Tangents)) BinarySerializer.WriteVec4Array(ref span, data.Tangents);
@@ -118,27 +120,27 @@ namespace BrickEngine.Assets.Data
 
     public readonly struct IndexData : IBinarySerializable<IndexData>
     {
-        public readonly int[] Indices;
+        public readonly uint[] Indices;
 
-        public IndexData(int[] indices)
+        public IndexData(uint[] indices)
         {
             Indices = indices;
         }
 
-        public static IndexData Deserialize(ReadOnlySpan<byte> blob)
+        public static IndexData Deserialize(ref ReadOnlySpan<byte> blob)
         {
-            return new IndexData(BinarySerializer.ReadIntArray(ref blob));
+            return new IndexData(BinarySerializer.ReadUIntArray(ref blob));
         }
 
         public static void Serialize(ByteBufferWriter writer, IndexData data)
         {
             var span = writer.GetSpan(data.Indices.Length * 4);
-            BinarySerializer.WriteIntArray(ref span, data.Indices);
+            BinarySerializer.WriteUIntArray(ref span, data.Indices);
             writer.ReturnSpanAndAdvance(ref span);
         }
     }
 
-    public class MeshData : IBinarySerializable<MeshData>
+    public sealed class MeshData : IBinarySerializable<MeshData>
     {
         public readonly VertexData VertexData;
         public readonly IndexData IndexData;
@@ -149,10 +151,10 @@ namespace BrickEngine.Assets.Data
             IndexData = indexData;
         }
 
-        public static MeshData Deserialize(ReadOnlySpan<byte> span)
+        public static MeshData Deserialize(ref ReadOnlySpan<byte> span)
         {
-            var vertexData = VertexData.Deserialize(span);
-            var indexData = IndexData.Deserialize(span);
+            var vertexData = VertexData.Deserialize(ref span);
+            var indexData = IndexData.Deserialize(ref span);
             return new MeshData(vertexData, indexData);
         }
 

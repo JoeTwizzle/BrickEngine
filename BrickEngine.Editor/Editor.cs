@@ -17,7 +17,7 @@ namespace BrickEngine.Editor
         public GameWindow Game { get; private set; }
         public World EditorWorld { get; private set; }
 
-        public bool IsEnabled { get; private set; }
+        public bool IsEnabled { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         public void OnLoad(GameWindow game)
@@ -26,8 +26,8 @@ namespace BrickEngine.Editor
             Game = game;
             EditorWorld = new();
             _gd = Game.GraphicsContext.GraphicsDevice;
-            _imGuiController = new ImGuiController(_gd, Game.Window, _gd.MainSwapchain!.Framebuffer.OutputDescription, Game.Window.Width, Game.Window.Height);
             _cl = Game.GraphicsContext.ResourceFactory.CreateCommandList();
+            _imGuiController = new ImGuiController(_gd, Game.Window, _gd.MainSwapchain!.Framebuffer.OutputDescription, Game.Window.Width, Game.Window.Height);
             //_editor = new EditorManager(this);
             game.Window.Resized += Window_Resized;
         }
@@ -41,16 +41,11 @@ namespace BrickEngine.Editor
         {
             _imGuiController.Update(Game.DeltaTime);
             ImGui.ShowDemoWindow();
-            //_editor.Update();
             _cl.Begin();
             _cl.SetFramebuffer(_gd.SwapchainFramebuffer!);
             _cl.SetFullViewport(0);
             _cl.ClearColorTarget(0, RgbaFloat.Blue);
-            //_cl.ClearDepthStencil(0);
             _imGuiController.Render(_gd, _cl);
-            //_cl.SetFramebuffer(_game.GraphicsDevice.SwapchainFramebuffer!);
-            //_cl.ClearColorTarget(0, RgbaFloat.Green);
-            //_cl.SetFullViewport(0);
             _cl.End();
             Game.GraphicsContext.SubmitCommands(_cl);
         }

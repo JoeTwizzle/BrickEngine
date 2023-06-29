@@ -50,36 +50,36 @@ namespace BrickEngine.Importers
 
     public class TextureImporter
     {
-        public static Task<Asset> ImportAsync(string path, CancellationToken token)
+        public static Task<TextureData> ImportAsync(string path, CancellationToken token)
         {
             using var fs = new FileStream(path, FileMode.Open);
             return Task.Run(() => Import(fs, TextureImportSettings.Default), token);
         }
 
-        public static Task<Asset> ImportAsync(string path, TextureImportSettings settings, CancellationToken token)
+        public static Task<TextureData> ImportAsync(string path, TextureImportSettings settings, CancellationToken token)
         {
             using var fs = new FileStream(path, FileMode.Open);
             return Task.Run(() => Import(fs, settings), token);
         }
 
-        public static Task<Asset> ImportAsync(Stream stream, TextureImportSettings settings, CancellationToken token)
+        public static Task<TextureData> ImportAsync(Stream stream, TextureImportSettings settings, CancellationToken token)
         {
             return Task.Run(() => Import(stream, settings), token);
         }
 
-        public static Asset Import(string path)
+        public static TextureData Import(string path)
         {
             using var fs = new FileStream(path, FileMode.Open);
             return Import(fs, TextureImportSettings.Default);
         }
 
-        public static Asset Import(string path, TextureImportSettings settings)
+        public static TextureData Import(string path, TextureImportSettings settings)
         {
             using var fs = new FileStream(path, FileMode.Open);
             return Import(fs, settings);
         }
 
-        public static Asset Import(Stream stream, TextureImportSettings settings)
+        public static TextureData Import(Stream stream, TextureImportSettings settings)
         {
             var info = ImageInfo.FromStream(stream);
             if (!info.HasValue)
@@ -188,9 +188,7 @@ namespace BrickEngine.Importers
                     mipLevels = MipMapper.GenerateMipChain(res.Width, res.Height, componentCount, res.Data, settings.GenerateMipmaps ? -1 : 1);
                 }
             }
-            using ByteBufferWriter writer = new ByteBufferWriter();
-            TextureData.Serialize(writer, new TextureData(vdPixelFormat, mipLevels));
-            return Asset.Create(AssetVersion.Create(1, 0, 0), typeof(TextureData).GetHashCode(), true, writer.WrittenSpan.ToArray());
+            return new TextureData(vdPixelFormat, mipLevels);
         }
 
 

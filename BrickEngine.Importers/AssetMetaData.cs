@@ -29,7 +29,7 @@ namespace BrickEngine.Importers
             Children = children;
         }
 
-        public static AssetMetaData Deserialize(ReadOnlySpan<byte> span)
+        public static AssetMetaData Deserialize(ref ReadOnlySpan<byte> span)
         {
             Guid guid = BinarySerializer.ReadGuid(ref span);
             string path = BinarySerializer.ReadString(ref span);

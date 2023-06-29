@@ -12,4 +12,10 @@
     <ProjectReference Include="..\BrickEngine.Editor\BrickEngine.Editor.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="SunTempleFull.glb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

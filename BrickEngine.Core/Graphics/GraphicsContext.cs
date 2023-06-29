@@ -24,17 +24,13 @@ namespace BrickEngine.Graphics
 
         public GraphicsContext(GameWindow game)
         {
-            GraphicsDeviceOptions options = new GraphicsDeviceOptions
+            autoDisposer = new();
+            GraphicsDeviceOptions options = new()
             {
                 PreferStandardClipSpaceYDirection = true,
                 PreferDepthRangeZeroToOne = true,
-#if VALIDATION
-                Debug = true
-#else
-                Debug = false
-#endif
+                Debug = game.Debug
             };
-            autoDisposer = new();
             GraphicsDevice = VeldridStartup.CreateVulkanGraphicsDevice(options, game.Window, false);
             ResourceFactory = GraphicsDevice.ResourceFactory;
             if (game.Debug)
@@ -60,6 +56,11 @@ namespace BrickEngine.Graphics
             }
             GraphicsDevice.SubmitCommands(commandList, fence);
             autoDisposer.AddFence(fence);
+        }
+
+        public void EndFrame()
+        {
+            autoDisposer.EndFrame();
         }
 
         public void Dispose()

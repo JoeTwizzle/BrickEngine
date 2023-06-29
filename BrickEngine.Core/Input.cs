@@ -77,13 +77,13 @@ namespace BrickEngine.Core
             }
         }
 
-        private readonly HashSet<Key> _currentlyPressedKeys = new HashSet<Key>();
-        private readonly HashSet<Key> _newKeysDownThisFrame = new HashSet<Key>();
-        private readonly HashSet<Key> _newKeysUpThisFrame = new HashSet<Key>();
+        private readonly HashSet<Key> _currentlyPressedKeys = new();
+        private readonly HashSet<Key> _newKeysDownThisFrame = new();
+        private readonly HashSet<Key> _newKeysUpThisFrame = new();
 
-        private readonly HashSet<MouseButton> _currentlyPressedMouseButtons = new HashSet<MouseButton>();
-        private readonly HashSet<MouseButton> _newMouseButtonsDownThisFrame = new HashSet<MouseButton>();
-        private readonly HashSet<MouseButton> _newMouseButtonsUpThisFrame = new HashSet<MouseButton>();
+        private readonly HashSet<MouseButton> _currentlyPressedMouseButtons = new();
+        private readonly HashSet<MouseButton> _newMouseButtonsDownThisFrame = new();
+        private readonly HashSet<MouseButton> _newMouseButtonsUpThisFrame = new();
 
         public Vector2 MousePosition;
         public Vector2 MouseDelta;

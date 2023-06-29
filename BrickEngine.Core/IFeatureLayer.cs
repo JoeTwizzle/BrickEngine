@@ -9,13 +9,13 @@ namespace BrickEngine
 {
     public interface IFeatureLayer
     {
-        bool IsEnabled { get; }
+        bool IsEnabled { get; set; }
 
         void OnLoad(GameWindow gameWindow);
 
         void Update();
 
-        void Display();
+        virtual void Display() { }
 
         void OnUnload();
     }
