@@ -22,7 +22,8 @@ namespace BrickEngine.Assets.Data
         TexCoord3 = 128,
     }
 
-    public readonly struct VertexData : IBinarySerializable<VertexData>
+    [MemoryPackable]
+    public readonly partial struct VertexData
     {
         //Either Length is either Array.Empty or VertexCount
         public readonly VertexFeatures VertexFeatures;
@@ -35,8 +36,6 @@ namespace BrickEngine.Assets.Data
         public readonly Vector2[] TexCoord1;
         public readonly Vector2[] TexCoord2;
         public readonly Vector2[] TexCoord3;
-
-
 
         public VertexData(int vertexCount, Vector3[] positions, Vector3[]? normals = null, Vector4[]? tangents = null, Vector4[]? colors = null,
             Vector2[]? texCoord0 = null, Vector2[]? texCoord1 = null, Vector2[]? texCoord2 = null, Vector2[]? texCoord3 = null)
@@ -58,44 +57,19 @@ namespace BrickEngine.Assets.Data
             VertexFeatures = GetFeatures(this);
         }
 
-
-        public static VertexData Deserialize(ref ReadOnlySpan<byte> span)
+        [MemoryPackConstructor]
+        public VertexData(VertexFeatures vertexFeatures, int vertexCount, Vector3[] positions, Vector3[] normals, Vector4[] tangents, Vector4[] colors, Vector2[] texCoord0, Vector2[] texCoord1, Vector2[] texCoord2, Vector2[] texCoord3)
         {
-            Vector3[] Positions = null!;
-            Vector3[]? Normals = null;
-            Vector4[]? Tangents = null;
-            Vector4[]? Colors = null;
-            Vector2[]? TexCoord0 = null;
-            Vector2[]? TexCoord1 = null;
-            Vector2[]? TexCoord2 = null;
-            Vector2[]? TexCoord3 = null;
-            VertexFeatures features = (VertexFeatures)BinarySerializer.ReadInt(ref span);
-            if (features.HasFlag(VertexFeatures.Positions)) Positions = BinarySerializer.ReadVec3Array(ref span);
-            if (features.HasFlag(VertexFeatures.Normals)) Normals = BinarySerializer.ReadVec3Array(ref span);
-            if (features.HasFlag(VertexFeatures.Tangents)) Tangents = BinarySerializer.ReadVec4Array(ref span);
-            if (features.HasFlag(VertexFeatures.Colors)) Colors = BinarySerializer.ReadVec4Array(ref span);
-            if (features.HasFlag(VertexFeatures.TexCoord0)) TexCoord0 = BinarySerializer.ReadVec2Array(ref span);
-            if (features.HasFlag(VertexFeatures.TexCoord1)) TexCoord1 = BinarySerializer.ReadVec2Array(ref span);
-            if (features.HasFlag(VertexFeatures.TexCoord2)) TexCoord2 = BinarySerializer.ReadVec2Array(ref span);
-            if (features.HasFlag(VertexFeatures.TexCoord3)) TexCoord3 = BinarySerializer.ReadVec2Array(ref span);
-            return new VertexData(Positions.Length, Positions, Normals, Tangents, Colors, TexCoord0, TexCoord1, TexCoord2, TexCoord3);
-        }
-
-        public static void Serialize(ByteBufferWriter writer, VertexData data)
-        {
-            var features = GetFeatures(data);
-            var arrayCount = BitOperations.PopCount((uint)features);
-            var span = writer.GetSpan(1 + arrayCount * data.VertexCount * sizeof(float) * 4);
-            BinarySerializer.WriteInt(ref span, (int)features);
-            if (features.HasFlag(VertexFeatures.Positions)) BinarySerializer.WriteVec3Array(ref span, data.Positions);
-            if (features.HasFlag(VertexFeatures.Normals)) BinarySerializer.WriteVec3Array(ref span, data.Normals);
-            if (features.HasFlag(VertexFeatures.Tangents)) BinarySerializer.WriteVec4Array(ref span, data.Tangents);
-            if (features.HasFlag(VertexFeatures.Colors)) BinarySerializer.WriteVec4Array(ref span, data.Colors);
-            if (features.HasFlag(VertexFeatures.TexCoord0)) BinarySerializer.WriteVec2Array(ref span, data.TexCoord0);
-            if (features.HasFlag(VertexFeatures.TexCoord1)) BinarySerializer.WriteVec2Array(ref span, data.TexCoord1);
-            if (features.HasFlag(VertexFeatures.TexCoord2)) BinarySerializer.WriteVec2Array(ref span, data.TexCoord2);
-            if (features.HasFlag(VertexFeatures.TexCoord3)) BinarySerializer.WriteVec2Array(ref span, data.TexCoord3);
-            writer.ReturnSpanAndAdvance(ref span);
+            VertexFeatures = vertexFeatures;
+            VertexCount = vertexCount;
+            Positions = positions;
+            Normals = normals;
+            Tangents = tangents;
+            Colors = colors;
+            TexCoord0 = texCoord0;
+            TexCoord1 = texCoord1;
+            TexCoord2 = texCoord2;
+            TexCoord3 = texCoord3;
         }
 
         private static VertexFeatures GetFeatures(VertexData data)
@@ -117,8 +91,8 @@ namespace BrickEngine.Assets.Data
             return array != null && array.Length > 0;
         }
     }
-
-    public readonly struct IndexData : IBinarySerializable<IndexData>
+    [MemoryPackable]
+    public readonly partial struct IndexData
     {
         public readonly uint[] Indices;
 
@@ -140,28 +114,23 @@ namespace BrickEngine.Assets.Data
         }
     }
 
-    public sealed class MeshData : IBinarySerializable<MeshData>
+    [MemoryPackable(GenerateType.CircularReference)]
+    public sealed partial class MeshData
     {
-        public readonly VertexData VertexData;
-        public readonly IndexData IndexData;
+        [MemoryPackOrder(0)]
+        public VertexData VertexData;
+        [MemoryPackOrder(1)]
+        public IndexData IndexData;
+        [MemoryPackConstructor]
+        public MeshData()
+        {
+                
+        }
 
         public MeshData(VertexData vertexData, IndexData indexData)
         {
             VertexData = vertexData;
             IndexData = indexData;
-        }
-
-        public static MeshData Deserialize(ref ReadOnlySpan<byte> span)
-        {
-            var vertexData = VertexData.Deserialize(ref span);
-            var indexData = IndexData.Deserialize(ref span);
-            return new MeshData(vertexData, indexData);
-        }
-
-        public static void Serialize(ByteBufferWriter writer, MeshData data)
-        {
-            VertexData.Serialize(writer, data.VertexData);
-            IndexData.Serialize(writer, data.IndexData);
         }
     }
 }

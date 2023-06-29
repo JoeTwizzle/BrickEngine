@@ -32,9 +32,9 @@ namespace BrickEngine.Importers
             return levelAsset;
         }
 
-        static VisualScene.SceneNode[] LoadNodes(ModelRoot root, MeshData[][] meshGroups, MaterialData[] materials)
+        static SceneNode[] LoadNodes(ModelRoot root, MeshData[][] meshGroups, MaterialData[] materials)
         {
-            VisualScene.SceneNode[] nodes = new VisualScene.SceneNode[root.LogicalNodes.Count];
+            SceneNode[] nodes = new SceneNode[root.LogicalNodes.Count];
             int i = 0;
             foreach (var node in root.LogicalNodes)
             {
@@ -49,7 +49,7 @@ namespace BrickEngine.Importers
                 {
                     childIdx[j] = children[j].LogicalIndex;
                 }
-                nodes[i] = new VisualScene.SceneNode(node.Name ?? $"Node {i + 1}", node.VisualParent?.LogicalIndex, childIdx, node.WorldMatrix, model);
+                nodes[i] = new SceneNode(node.Name ?? $"Node {i + 1}", node.VisualParent?.LogicalIndex, childIdx, node.WorldMatrix, model);
                 i++;
             }
             return nodes;

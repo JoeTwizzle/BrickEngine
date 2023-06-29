@@ -4,6 +4,8 @@ using BrickEngine.Core;
 using BrickEngine.Editor;
 using BrickEngine.Example.RayTracing;
 using BrickEngine.Importers;
+using MemoryPack;
+using SharpGLTF.Schema2;
 
 namespace BrickEngine.Example
 {
@@ -33,26 +35,37 @@ namespace BrickEngine.Example
 
         public bool IsEnabled { get; set; } = true;
 
-        public void OnLoad(GameWindow gameWindow)
+        public async void OnLoad(GameWindow gameWindow)
         {
-            Asset sceneAsset;
+            VisualScene scene;
             Console.WriteLine("Loading Scene!");
-            if (File.Exists("SunTempleAsset.bin"))
+            bool preSaved = File.Exists("SunTempleAsset.bin");
+            if (!File.Exists("SunTempleAsset.bin"))
             {
-                sceneAsset = Asset.Load(new FileStream("SunTempleAsset.bin", FileMode.Open));
+                scene = GLTFImporter.Import("SunTempleFull.glb");
+                Console.WriteLine("Loaded!");
+                using var fs = new FileStream("SunTempleAsset.bin", FileMode.Create);
+                await MemoryPackSerializer.SerializeAsync(fs, scene);
             }
             else
             {
+                var fs = new FileStream("SunTempleAsset.bin", FileMode.Open);
+                if (fs.Length > 0)
+                {
+                    scene = (await MemoryPackSerializer.DeserializeAsync<VisualScene>(fs))!;
+                }
+                else
+                {
+                    fs.Close();
+                    fs.Dispose();
 
-                var scene = GLTFImporter.Import("SunTempleFull.glb");
-                using var writer = new ByteBufferWriter();
-                VisualScene.Serialize(writer, scene);
-                sceneAsset = Asset.Create(1, 0, true, writer.WrittenSpan.ToArray());
-                Asset.Save(sceneAsset, new FileStream("SunTempleAsset.bin", FileMode.Create));
+                    scene = GLTFImporter.Import("SunTempleFull.glb");
+                    Console.WriteLine("Loaded!");
+                    using var file = new FileStream("SunTempleAsset.bin", FileMode.Create);
+                    await MemoryPackSerializer.SerializeAsync(file, scene);
+                }
             }
-            var span = (ReadOnlySpan<byte>)sceneAsset.GetDecompressedBlob().AsSpan();
-            var visualScene = VisualScene.Deserialize(ref span);
-            Console.WriteLine("Nodes: " + visualScene.Nodes.Length);
+            Console.WriteLine("Nodes: " + scene.Nodes.Length);
             Console.WriteLine("Done!");
             //Implementierung von stochastic-subsets-for-bvh-construction [?]
             //Erweiterung von Binned-SAH mit 2, 4, 8 Child nodes perf vergleich [?]
