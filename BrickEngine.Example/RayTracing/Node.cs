@@ -26,13 +26,13 @@ namespace BrickEngine.Example.RayTracing
         /// <summary>
         /// Number of primitives this node contains
         /// </summary>
-        public int PrimitiveCount;
+        public uint PrimitiveCount;
         /// <summary>
         /// Index of the first child of this node
         /// </summary>
-        public int FirstIndex;
+        public uint FirstIndex;
 
-        public Node(BoundingBox bbox, int prim_count, int first_index)
+        public Node(BoundingBox bbox, uint prim_count, uint first_index)
         {
             BoundingBox = bbox;
             PrimitiveCount = prim_count;

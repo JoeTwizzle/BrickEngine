@@ -18,7 +18,7 @@ namespace BrickEngine.Example.RayTracing
             MaxDepth = GetDepth();
         }
 
-        public int GetDepth(int node_index = 0)
+        public int GetDepth(uint node_index = 0)
         {
             var node = Nodes[node_index];
             return node.IsLeaf ? 1 : 1 + Math.Max(GetDepth(node.FirstIndex), GetDepth(node.FirstIndex + 1));

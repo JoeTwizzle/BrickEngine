@@ -44,7 +44,7 @@ namespace BrickEngine.Editor
             _cl.Begin();
             _cl.SetFramebuffer(_gd.SwapchainFramebuffer!);
             _cl.SetFullViewport(0);
-            _cl.ClearColorTarget(0, RgbaFloat.Blue);
+            //_cl.ClearColorTarget(0, RgbaFloat.Blue);
             _imGuiController.Render(_gd, _cl);
             _cl.End();
             Game.GraphicsContext.SubmitCommands(_cl);

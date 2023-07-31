@@ -42,14 +42,14 @@ namespace BrickEngine.Core.Utilities
 
         public void AddFence(Fence fence)
         {
-            fencesThisFrame++;
-            usedFences.Add(fence);
+            //fencesThisFrame++;
+            //usedFences.Add(fence);
         }
 
         public void DisposeWhenUnused(IDisposable disposable)
         {
-            disposesThisFrame++;
-            disposables.Add(disposable);
+            //disposesThisFrame++;
+            //disposables.Add(disposable);
         }
 
         void DisposeItems()
@@ -81,8 +81,8 @@ namespace BrickEngine.Core.Utilities
                         freeFences.Add(fence);
                         usedFences.RemoveAt(startingFence - j);//take from back
                         fenceGroups.RemoveAt(i);
-                        disposeGroups.RemoveAt(i);
                     }
+                    disposeGroups.RemoveAt(i);
                     for (int j = 0; j < groupDisposableCount; j++)
                     {
                         Debug.WriteLine("Disposed resource of type: " + disposables[startingDisposeable - j].GetType().Name);

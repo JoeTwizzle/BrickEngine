@@ -9,6 +9,21 @@ namespace BrickEngine.Core.Mathematics
 {
     public static class VectorExtensions
     {
+        #region Normalize
+        public static Vector4 Normalized(this Vector4 self)
+        {
+            return Vector4.Normalize(self);
+        }    
+        public static Vector3 Normalized(this Vector3 self)
+        {
+            return Vector3.Normalize(self);
+        }     
+        public static Vector2 Normalized(this Vector2 self)
+        {
+            return Vector2.Normalize(self);
+        }    
+        #endregion
+
         #region Swizzle
         /// <summary>
         /// Gets or sets a Vector2 with the v.X and v.Y components of this instance.

@@ -68,10 +68,14 @@ namespace BrickEngine.Core
             while (Window.Exists)
             {
                 long current = Stopwatch.GetTimestamp();
-                DeltaTimeFull = (current - prev) * 1e-7;
+                DeltaTimeFull = (current - prev) * 1e-7; //Ticks to seconds constant
                 DeltaTime = (float)DeltaTimeFull;
                 prev = current;
                 var InputSnapshot = Window.PumpEvents();
+                if (!Window.Exists)
+                {
+                    break;
+                }
                 Input.UpdateFrameInput(InputSnapshot, Window);
 
                 for (int i = 0; i < FeatureLayers.Length; i++)
@@ -88,6 +92,7 @@ namespace BrickEngine.Core
                         FeatureLayers[i].Display();
                     }
                 }
+
                 GraphicsContext.GraphicsDevice.SwapBuffers();
                 GraphicsContext.EndFrame();
             }

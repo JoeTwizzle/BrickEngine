@@ -33,31 +33,33 @@ namespace BrickEngine.Example.RayTracing
     {
         const int BinCount = 16;
 
-        public static BuildConfig BuildConfig = new(2, 8, 0.0f);
 
         internal sealed class ComparisonComparer : Comparer<int>
         {
-            public Vector3[] centers;
+            public unsafe Vector3* centers;
             public int axis;
 
             public override int Compare(int x, int y)
             {
-                float a;
-                float b;
-                switch (axis)
+                unsafe
                 {
-                    case 0:
-                        a = centers[x].X;
-                        b = centers[y].X;
-                        return a.CompareTo(b);
-                    case 1:
-                        a = centers[x].Y;
-                        b = centers[y].Y;
-                        return a.CompareTo(b);
-                    case 2:
-                        a = centers[x].Z;
-                        b = centers[y].Z;
-                        return a.CompareTo(b);
+                    float a;
+                    float b;
+                    switch (axis)
+                    {
+                        case 0:
+                            a = centers[x].X;
+                            b = centers[y].X;
+                            return a.CompareTo(b);
+                        case 1:
+                            a = centers[x].Y;
+                            b = centers[y].Y;
+                            return a.CompareTo(b);
+                        case 2:
+                            a = centers[x].Z;
+                            b = centers[y].Z;
+                            return a.CompareTo(b);
+                    }
                 }
                 return -1;
             }
@@ -65,7 +67,17 @@ namespace BrickEngine.Example.RayTracing
 
         static readonly ComparisonComparer MedianSplitComparer = new();
 
-        public static BoundingVolumeHierarchy Build(BoundingBox[] bboxes, Vector3[] centers, int PrimCount)
+        public static BoundingVolumeHierarchy BuildBl(ReadOnlySpan<BoundingBox> bboxes, ReadOnlySpan<Vector3> centers, int PrimCount)
+        {
+            BuildConfig BuildConfig = new(2, 8, 20f);
+            return Build(bboxes, centers, PrimCount, BuildConfig);
+        }
+        public static BoundingVolumeHierarchy BuildTl(ReadOnlySpan<BoundingBox> bboxes, ReadOnlySpan<Vector3> centers, int PrimCount)
+        {
+            BuildConfig BuildConfig = new(2, 8, 1.0f);
+            return Build(bboxes, centers, PrimCount, BuildConfig);
+        }
+        public static BoundingVolumeHierarchy Build(ReadOnlySpan<BoundingBox> bboxes, ReadOnlySpan<Vector3> centers, int PrimCount, BuildConfig BuildConfig)
         {
             BoundingVolumeHierarchy bvh = new()
             {
@@ -79,12 +91,15 @@ namespace BrickEngine.Example.RayTracing
                 bvh.PrimitiveIndices[i] = i;
             }
 
-            bvh.Nodes[0].PrimitiveCount = PrimCount;
+            bvh.Nodes[0].PrimitiveCount = (uint)PrimCount;
             bvh.Nodes[0].FirstIndex = 0;
 
-            int node_count = 1;
-            BuildRecursive(bvh, 0, ref node_count, bboxes, centers);
-            Array.Resize(ref bvh.Nodes, node_count);
+            uint node_count = 1;
+            BuildRecursive(bvh, 0, ref node_count, bboxes, centers, BuildConfig);
+            checked
+            {
+                Array.Resize(ref bvh.Nodes, (int)node_count);
+            }
             bvh.Refresh();
             return bvh;
         }
@@ -97,7 +112,7 @@ namespace BrickEngine.Example.RayTracing
         /// <param name="nodeCount">The number of nodes present</param>
         /// <param name="bboxes">The bounding boxes of the triangles</param>
         /// <param name="centers">The centers of the triangles</param>
-        static void BuildRecursive(BoundingVolumeHierarchy bvh, int nodeIndex, ref int nodeCount, BoundingBox[] bboxes, Vector3[] centers)
+        static void BuildRecursive(BoundingVolumeHierarchy bvh, uint nodeIndex, ref uint nodeCount, ReadOnlySpan<BoundingBox> bboxes, ReadOnlySpan<Vector3> centers, BuildConfig BuildConfig)
         {
             //The node being split
             ref Node node = ref bvh.Nodes[nodeIndex];
@@ -121,7 +136,7 @@ namespace BrickEngine.Example.RayTracing
             }
 
             float leafCost = node.BoundingBox.HalfArea * (node.PrimitiveCount - BuildConfig.TraversalCost);
-            int firstRight; // Index of the first primitive in the right child
+            uint firstRight; // Index of the first primitive in the right child
             if ((minSplit.RightBin == 0) || minSplit.Cost >= leafCost)
             {
                 if (node.PrimitiveCount > BuildConfig.MaxPrimitives)
@@ -129,9 +144,17 @@ namespace BrickEngine.Example.RayTracing
                     // Fall back solution: The node has too many primitives, we use the median split
                     int axis = node.BoundingBox.LargestAxis;
                     MedianSplitComparer.axis = axis;
-                    MedianSplitComparer.centers = centers;
-                    Array.Sort(bvh.PrimitiveIndices, node.FirstIndex, node.PrimitiveCount, MedianSplitComparer);
-
+                    unsafe
+                    {
+                        fixed (Vector3* ptr = centers)
+                        {
+                            MedianSplitComparer.centers = ptr;
+                            checked
+                            {
+                                Array.Sort(bvh.PrimitiveIndices, (int)node.FirstIndex, (int)node.PrimitiveCount, MedianSplitComparer);
+                            }
+                        }
+                    }
                     firstRight = node.FirstIndex + node.PrimitiveCount / 2;
                 }
                 else
@@ -144,7 +167,7 @@ namespace BrickEngine.Example.RayTracing
             {
                 firstRight = Partition(bvh.PrimitiveIndices, node.FirstIndex, node.FirstIndex + node.PrimitiveCount, ref node.BoundingBox, ref minSplit, centers);
             }
-            var firstChild = nodeCount;
+            uint firstChild = nodeCount;
             ref var left = ref bvh.Nodes[firstChild];
             ref var right = ref bvh.Nodes[firstChild + 1];
             nodeCount += 2;
@@ -157,15 +180,15 @@ namespace BrickEngine.Example.RayTracing
             node.FirstIndex = firstChild;
             node.PrimitiveCount = 0;
 
-            BuildRecursive(bvh, firstChild, ref nodeCount, bboxes, centers);
-            BuildRecursive(bvh, firstChild + 1, ref nodeCount, bboxes, centers);
+            BuildRecursive(bvh, firstChild, ref nodeCount, bboxes, centers, BuildConfig);
+            BuildRecursive(bvh, firstChild + 1, ref nodeCount, bboxes, centers, BuildConfig);
         }
 
         #region std::Partition
-        static int Partition(int[] array, int first, int last, ref BoundingBox bbox, ref Split min_split, Vector3[] center)
+        static uint Partition(int[] array, uint first, uint last, ref BoundingBox bbox, ref Split min_split, ReadOnlySpan<Vector3> center)
         {
-            int ufirst = first;
-            int ulast = last;
+            uint ufirst = first;
+            uint ulast = last;
             //int first = FindIfNot(array, start, end, ref bbox, ref min_split, center);
             while (true)
             {
@@ -204,7 +227,7 @@ namespace BrickEngine.Example.RayTracing
             }
         }
 
-        static bool Predicate(int i, ref BoundingBox bbox, ref Split minSplit, Vector3[] centers)
+        static bool Predicate(int i, ref BoundingBox bbox, ref Split minSplit, ReadOnlySpan<Vector3> centers)
         {
             return BinIndex(minSplit.Axis, bbox, centers[i]) < minSplit.RightBin;
         }
@@ -237,7 +260,7 @@ namespace BrickEngine.Example.RayTracing
         /// <param name="bboxes"></param>
         /// <param name="centers"></param>
         /// <returns>A split along the given axis</returns>
-        static Split FindBestSplit(BoundingVolumeHierarchy bvh, int axis, ref Node node, BoundingBox[] bboxes, Vector3[] centers)
+        static Split FindBestSplit(BoundingVolumeHierarchy bvh, int axis, ref Node node, ReadOnlySpan<BoundingBox> bboxes, ReadOnlySpan<Vector3> centers)
         {
             Span<Bin> bins = stackalloc Bin[BinCount];
             for (int i = 0; i < BinCount; i++)

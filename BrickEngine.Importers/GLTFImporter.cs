@@ -22,11 +22,11 @@ namespace BrickEngine.Importers
     public static class GLTFImporter
     {
 
-        public static VisualScene Import(string path)
+        public static VisualScene Import(string path, bool compressTextures = true)
         {
             ModelRoot modelRoot = ModelRoot.Load(path, SharpGLTF.Validation.ValidationMode.TryFix);
             var meshGroups = LoadMeshes(modelRoot);
-            var materialAssets = LoadMaterials(modelRoot);
+            var materialAssets = LoadMaterials(modelRoot, compressTextures);
             var nodes = LoadNodes(modelRoot, meshGroups, materialAssets);
             var levelAsset = new VisualScene(nodes);
             return levelAsset;
@@ -88,7 +88,7 @@ namespace BrickEngine.Importers
             public TextureData Occlusion;
         }
 
-        static MaterialData[] LoadMaterials(ModelRoot root)
+        static MaterialData[] LoadMaterials(ModelRoot root, bool compressTextures)
         {
             MaterialData[] materials = new MaterialData[root.LogicalMaterials.Count];
             int currentMaterial = 0;
@@ -143,27 +143,28 @@ namespace BrickEngine.Importers
             foreach (var texture in neededTextures)
             {
                 ref var textureAsset = ref CollectionsMarshal.GetValueRefOrAddDefault(textures, texture.Key, out var _);
-
+                var compression = compressTextures ? TextureCompressionMode.Medium : TextureCompressionMode.None;
                 var tex = root.LogicalTextures[texture.Key];
+                using var s = tex.PrimaryImage.Content.Content.AsStream();
                 if (texture.Value.HasFlag(TextureChannel.Color))
                 {
-                    textureAsset.Color = TextureImporter.Import(tex.PrimaryImage.Content.Content.AsStream(), new TextureImportSettings(TextureType.RGBA, CompressionMode.None, true, true));
+                    textureAsset.Color = TextureImporter.Import(s, new TextureImportSettings(TextureType.RGBA, compression, true, true));
                 }
                 if (texture.Value.HasFlag(TextureChannel.Normal))
                 {
-                    textureAsset.Normal = TextureImporter.Import(tex.PrimaryImage.Content.Content.AsStream(), new TextureImportSettings(TextureType.RG, CompressionMode.None, true, false));
+                    textureAsset.Normal = TextureImporter.Import(s, new TextureImportSettings(TextureType.RG, compression, true, false));
                 }
                 if (texture.Value.HasFlag(TextureChannel.MetalRoughness))
                 {
-                    textureAsset.MetalRoughness = TextureImporter.Import(tex.PrimaryImage.Content.Content.AsStream(), new TextureImportSettings(TextureType.RG, CompressionMode.None, true, false));
+                    textureAsset.MetalRoughness = TextureImporter.Import(s, new TextureImportSettings(TextureType.RG, compression, true, false));
                 }
                 if (texture.Value.HasFlag(TextureChannel.Occlusion))
                 {
-                    textureAsset.Occlusion = TextureImporter.Import(tex.PrimaryImage.Content.Content.AsStream(), new TextureImportSettings(TextureType.R, CompressionMode.None, true, false));
+                    textureAsset.Occlusion = TextureImporter.Import(s, new TextureImportSettings(TextureType.R, compression, true, false));
                 }
                 if (texture.Value.HasFlag(TextureChannel.Emissive))
                 {
-                    textureAsset.Emissive = TextureImporter.Import(tex.PrimaryImage.Content.Content.AsStream(), new TextureImportSettings(TextureType.RGBA, CompressionMode.None, true, true));
+                    textureAsset.Emissive = TextureImporter.Import(s, new TextureImportSettings(TextureType.RGBA, compression, true, true));
                 }
             }
             foreach (var mat in root.LogicalMaterials)

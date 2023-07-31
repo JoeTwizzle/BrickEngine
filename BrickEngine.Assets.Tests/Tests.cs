@@ -14,7 +14,7 @@ namespace BrickEngine.Assets.Tests
         [Test]
         public static void TestTexture()
         {
-            var texture = TextureImporter.Import("Files/plains.png", new TextureImportSettings(TextureType.RG, CompressionMode.High, true, true));
+            var texture = TextureImporter.Import("Files/plains.png", new TextureImportSettings(TextureType.RG, TextureCompressionMode.High, true, true));
             TextureData data = TextureData.Deserialize(texture.GetDecompressedBlob());
             using ByteBufferWriter writer = new ByteBufferWriter();
             TextureData.Serialize(writer, data);

@@ -22,7 +22,7 @@ namespace BrickEngine.Importers
         RGBA
     }
 
-    public enum CompressionMode
+    public enum TextureCompressionMode
     {
         None,
         Low,
@@ -32,13 +32,13 @@ namespace BrickEngine.Importers
 
     public struct TextureImportSettings
     {
-        public static TextureImportSettings Default => new TextureImportSettings(TextureType.RGBA, CompressionMode.Medium, true, true);
+        public static TextureImportSettings Default => new TextureImportSettings(TextureType.RGBA, TextureCompressionMode.Medium, true, true);
         public TextureType TextureType;
-        public CompressionMode CompressionMode;
+        public TextureCompressionMode CompressionMode;
         public bool GenerateMipmaps;
         public bool IsSrgb;
 
-        public TextureImportSettings(TextureType textureType, CompressionMode compressionMode, bool generateMipmaps, bool isSrgb)
+        public TextureImportSettings(TextureType textureType, TextureCompressionMode compressionMode, bool generateMipmaps, bool isSrgb)
         {
             TextureType = textureType;
             CompressionMode = compressionMode;
@@ -89,7 +89,7 @@ namespace BrickEngine.Importers
             MipLevel[] mipLevels;
             bool isHdr = info.Value.BitsPerChannel > 8;
             uint vdPixelFormat = (uint)GetVdPixelFormat(isHdr, settings);
-            bool compress = settings.CompressionMode != CompressionMode.None;
+            bool compress = settings.CompressionMode != TextureCompressionMode.None;
             if (compress)
             {
                 var encoder = new BcEncoder();
@@ -195,7 +195,7 @@ namespace BrickEngine.Importers
         static Veldrid.PixelFormat GetVdPixelFormat(bool isHdr, TextureImportSettings settings)
         {
             Veldrid.PixelFormat format = Veldrid.PixelFormat.R8_G8_B8_A8_UNorm;
-            bool compress = settings.CompressionMode != CompressionMode.None;
+            bool compress = settings.CompressionMode != TextureCompressionMode.None;
             if (compress)
             {
                 if (isHdr)
